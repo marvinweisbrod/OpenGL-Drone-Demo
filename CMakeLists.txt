@@ -6,6 +6,11 @@ set(INCLUDES "${CMAKE_CURRENT_SOURCE_DIR}/src")
 
 ##-------------------------------add your source files here-------------------------------------------------------------
 ##        new source paths must be added to the include list, if contained headers are used elsewhere!
+list(APPEND SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/src/Mesh.h")
+list(APPEND SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/src/Mesh.cpp")
+list(APPEND SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/src/Renderable.h")
+list(APPEND SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/src/Renderable.cpp")
+
 ## Framework/Assets
 list(APPEND SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/src/Framework/Assets/AssetManager.h")
 list(APPEND SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/src/Framework/Assets/AssetManager.cpp")
