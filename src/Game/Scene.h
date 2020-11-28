@@ -4,6 +4,8 @@
 #include <ShaderProgram.h>
 #include <memory>
 #include <AssetManager.h>
+#include <vector>
+#include "Renderable.h"
 
 class Scene
 {
@@ -30,5 +32,7 @@ private:
     GLuint vaoID, vboID, eboID;
 	GLuint vertexCount = 0;
 
+	std::vector<Renderable> renderables;
+	float timecounter=0.0f;
 };
 

@@ -1,5 +1,6 @@
 #include "Scene.h"
 #include <AssetManager.h>
+#include "OBJLoader.h"
 
 Scene::Scene(GameWindow * window) :
 	m_window(window)
@@ -22,64 +23,52 @@ bool Scene::init()
 		glFrontFace(GL_CCW);
 		glCullFace(GL_BACK);
 
-		// create the vertex data
-		// Praktikum 2: 2.3.1
-		GLfloat vertices[] = {
-			-0.5f, -0.5f, 0.0f, 0.0f, 1.0f,
-			 0.5f, -0.5f, 0.0f, 0.0f, 1.0f,
-			 0.5f,  0.5f, 0.0f, 1.0f, 0.0f,
-			 0.0f,  1.0f, 1.0f, 0.0f, 0.0f,
-			-0.5f,  0.5f, 0.0f, 1.0f, 0.0f
-		};
+		//{ // 3.2,3.4
+		//	std::vector<Vertex> vertices;
+		//	vertices.emplace_back(glm::vec3(-0.5f, -0.5f, 0.0f));
+		//	vertices.emplace_back(glm::vec3(0.5f, -0.5f, 0.0f));
+		//	vertices.emplace_back(glm::vec3(0.5f, 0.5f, 0.0f));
+		//	vertices.emplace_back(glm::vec3(0.0f, 1.0f, 0.0f));
+		//	vertices.emplace_back(glm::vec3(-0.5f, 0.5f, 0.0f));
 
-		GLuint indices[] = {
-			0, 1, 2,
-			0, 2, 4,
-			4, 2, 3
-		};
-		vertexCount = 9;
+		//	std::vector<Index> indices;
+		//	indices.push_back(0);
+		//	indices.push_back(1);
+		//	indices.push_back(2);
 
-		// Praktikum 2: 2.3.3
-		//GLfloat vertices[] = {
-		//	-0.5f, -0.5f, 0.0f, 0.0f, 1.0f, // unten links
-		//	 0.5f, -0.5f, 0.0f, 0.0f, 1.0f, // unten rechts
-		//	 0.5f,  0.5f, 0.0f, 1.0f, 0.0f, // oben rechts
-		//	 0.0f, -0.5f, 1.0f, 0.0f, 0.0f, // unten mitte
-		//	-0.5f,  0.5f, 0.0f, 1.0f, 0.0f  // oben links
-		//};
+		//	indices.push_back(0);
+		//	indices.push_back(2);
+		//	indices.push_back(4);
 
-		//GLuint indices[] = {
-		//	0, 3, 4,
-		//	1, 2, 3,
-		//};
-		//vertexCount = 6;
+		//	indices.push_back(4);
+		//	indices.push_back(2);
+		//	indices.push_back(3);
 
+		//	std::vector<VertexAttribute> attributes;
+		//	attributes.push_back(VertexAttribute{ 3, GL_FLOAT, sizeof(Vertex), offsetof(Vertex, position) });
+		//	attributes.push_back(VertexAttribute{ 2, GL_FLOAT, sizeof(Vertex), offsetof(Vertex, uv) });
+		//	attributes.push_back(VertexAttribute{ 3, GL_FLOAT, sizeof(Vertex), offsetof(Vertex, normal) });
+		//	attributes.push_back(VertexAttribute{ 3, GL_FLOAT, sizeof(Vertex), offsetof(Vertex, tangent) });
 
+		//	renderables.push_back(Renderable());
+		//	auto& renderable = renderables.back();
+		//	renderable.addMesh_inplace(vertices, attributes, indices);
+		//	renderable.initialize();
+		//}
 
+		{ // 3.3 (sphere required)
+			auto result = OBJLoader::loadOBJ("assets/models/icosahedron.obj", false, false);
 
-		// create buffers
-		glGenVertexArrays(1, &vaoID);
-		glGenBuffers(1, &vboID);
-		glGenBuffers(1, &eboID);
+			for (auto& object : result.objects) {
+				renderables.push_back(Renderable());
+				auto& renderable = renderables.back();
 
-		// bind VAO
-		glBindVertexArray(vaoID);
-
-		// configure VBO
-		glBindBuffer(GL_ARRAY_BUFFER, vboID);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-		glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
-		glEnableVertexAttribArray(0);
-		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*) (2 * sizeof(float)));
-		glEnableVertexAttribArray(1);
-
-		// configure element array buffer
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, eboID);
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-
-		// unbind vao
-		glBindVertexArray(0);
+				for (auto& mesh : object.meshes) {
+					renderable.addMesh_inplace(mesh.vertices, mesh.atts, mesh.indices);
+				}
+				renderable.initialize();
+			}
+		}
 
 
 		//initial opengl state
@@ -105,10 +94,13 @@ void Scene::render(float dt)
 	glClear(GL_COLOR_BUFFER_BIT);
 	m_shader->use();
 
-	glBindVertexArray(vaoID);
-	glDrawElements(GL_TRIANGLES, vertexCount, GL_UNSIGNED_INT, 0);
-	glBindVertexArray(0);
+	timecounter += dt;
+	if (timecounter >= 1.0f) timecounter = 0.0f;
+	m_shader->setUniform("color", timecounter);
 
+	for(auto& renderable: renderables){
+		renderable.render();
+	}
 
 }
 
