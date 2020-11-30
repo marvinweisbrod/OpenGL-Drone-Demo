@@ -21,6 +21,10 @@ private:
 
 	void updateTransformMatrix();
 
+protected:
+	void addChild(Transform* child);
+	void removeChild(Transform* child);
+	void markDirty();
 public:
 	Transform();
 	~Transform();
@@ -33,9 +37,6 @@ public:
 
 	void setParent(Transform* parent);
 	Transform* getParent();
-	void addChild(Transform* child);
-	void removeChild(Transform* child);
-	void markDirty();
 
 	const glm::vec3& getPosition();
 	const glm::quat& getRotation();

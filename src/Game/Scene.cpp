@@ -29,25 +29,26 @@ bool Scene::init()
 		glDepthFunc(GL_LESS);
 
 		{
-			//auto sphere = addObject("assets/models/sphere.obj");
-			//sphere->scale(glm::vec3(0.6f, 0.6f, 0.6f));
-			//r_spheres = sphere;
-			//// "ears"
-			//auto sphere2 = addObject("assets/models/icosahedron.obj");
-			//auto sphere3 = addObject("assets/models/icosahedron.obj");
-			//sphere2->scale(glm::vec3(0.6f, 0.6f, 0.6f));
-			//sphere3->scale(glm::vec3(0.6f, 0.6f, 0.6f));
-			//sphere2->translate(glm::vec3(-1.0f,1.0f,0.0f));
-			//sphere3->translate(glm::vec3(1.0f, 1.0f, 0.0f));
-			//sphere2->setParent(sphere);
-			//sphere3->setParent(sphere);
+			auto sphere = addObject("assets/models/sphere.obj", true);
+			sphere->scale(glm::vec3(0.5f, 0.5f, 0.5f));
+			r_spheres = sphere;
+			// "ears"
+			auto sphere2 = addObject("assets/models/sphere.obj", true);
+			auto sphere3 = addObject("assets/models/sphere.obj", true);
+			sphere2->scale(glm::vec3(0.6f, 0.6f, 0.6f));
+			sphere3->scale(glm::vec3(0.6f, 0.6f, 0.6f));
+			sphere2->translate(glm::vec3(-1.0f,1.0f,0.0f));
+			sphere3->translate(glm::vec3(1.0f, 1.0f, 0.0f));
+			sphere2->setParent(sphere);
+			sphere3->setParent(sphere);
 		}
 		{
-			auto ground = addObject("assets/models/ground.obj", true);
+			auto ground = addObject("assets/models/ground.obj");
 			r_ground = ground;
 
 			ground->scale(glm::vec3(0.01f, 0.01f, 0.01f));
-			ground->rotate(glm::angleAxis(glm::radians(30.0f), glm::vec3(1.0f, 0.0f, 0.0f)));
+			ground->translate(glm::vec3(0.0f, 0.0f, 0.8f));
+			ground->rotate(glm::angleAxis(glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f)));
 		}
 
 
@@ -86,27 +87,16 @@ void Scene::render(float dt)
 
 void Scene::update(float dt)
 {
-	//glm::vec3 translation(0.0f,0.0f,0.0f);
-	//if (m_window->getInput().getKeyState(Key::W) == KeyState::Pressed)
-	//	translation.y += 1.0f * dt;
-	//if (m_window->getInput().getKeyState(Key::S) == KeyState::Pressed)
-	//	translation.y += -1.0f * dt;
-	//if (m_window->getInput().getKeyState(Key::A) == KeyState::Pressed)
-	//	translation.x += -1.0f * dt;
-	//if (m_window->getInput().getKeyState(Key::D) == KeyState::Pressed)
-	//	translation.x += 1.0f * dt;
-	//r_spheres->translate(translation);
-
-	glm::quat rotation(0.0f, 0.0f, 0.0f, 0.0f);
+	glm::vec3 translation(0.0f,0.0f,0.0f);
 	if (m_window->getInput().getKeyState(Key::W) == KeyState::Pressed)
-		rotation = glm::angleAxis(glm::radians(30.0f * dt), glm::vec3(1.0f, 0.0f, 0.0f));
+		translation.y += 1.0f * dt;
 	if (m_window->getInput().getKeyState(Key::S) == KeyState::Pressed)
-		rotation = glm::angleAxis(glm::radians(-30.0f * dt), glm::vec3(1.0f, 0.0f, 0.0f));
+		translation.y += -1.0f * dt;
 	if (m_window->getInput().getKeyState(Key::A) == KeyState::Pressed)
-		rotation = glm::angleAxis(glm::radians(30.0f * dt), glm::vec3(0.0f, 1.0f, 0.0f));
+		translation.x += -1.0f * dt;
 	if (m_window->getInput().getKeyState(Key::D) == KeyState::Pressed)
-		rotation = glm::angleAxis(glm::radians(-30.0f * dt), glm::vec3(0.0f, 1.0f, 0.0f));
-	r_ground->rotate(rotation);
+		translation.x += 1.0f * dt;
+	r_spheres->translate(translation);
 }
 
 GameWindow * Scene::getWindow()
