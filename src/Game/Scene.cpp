@@ -1,6 +1,8 @@
 #include "Scene.h"
 #include <AssetManager.h>
 #include "OBJLoader.h"
+#include <vector>
+#include <memory>
 
 Scene::Scene(GameWindow * window) :
 	m_window(window)
@@ -13,6 +15,7 @@ Scene::~Scene()
 
 bool Scene::init()
 {
+
 	try
 	{
 		//Load shader
@@ -22,52 +25,29 @@ bool Scene::init()
 		glEnable(GL_CULL_FACE);
 		glFrontFace(GL_CCW);
 		glCullFace(GL_BACK);
+		glEnable(GL_DEPTH_TEST);
+		glDepthFunc(GL_LESS);
 
-		//{ // 3.2,3.4
-		//	std::vector<Vertex> vertices;
-		//	vertices.emplace_back(glm::vec3(-0.5f, -0.5f, 0.0f));
-		//	vertices.emplace_back(glm::vec3(0.5f, -0.5f, 0.0f));
-		//	vertices.emplace_back(glm::vec3(0.5f, 0.5f, 0.0f));
-		//	vertices.emplace_back(glm::vec3(0.0f, 1.0f, 0.0f));
-		//	vertices.emplace_back(glm::vec3(-0.5f, 0.5f, 0.0f));
+		{
+			//auto sphere = addObject("assets/models/sphere.obj");
+			//sphere->scale(glm::vec3(0.6f, 0.6f, 0.6f));
+			//r_spheres = sphere;
+			//// "ears"
+			//auto sphere2 = addObject("assets/models/icosahedron.obj");
+			//auto sphere3 = addObject("assets/models/icosahedron.obj");
+			//sphere2->scale(glm::vec3(0.6f, 0.6f, 0.6f));
+			//sphere3->scale(glm::vec3(0.6f, 0.6f, 0.6f));
+			//sphere2->translate(glm::vec3(-1.0f,1.0f,0.0f));
+			//sphere3->translate(glm::vec3(1.0f, 1.0f, 0.0f));
+			//sphere2->setParent(sphere);
+			//sphere3->setParent(sphere);
+		}
+		{
+			auto ground = addObject("assets/models/ground.obj", true);
+			r_ground = ground;
 
-		//	std::vector<Index> indices;
-		//	indices.push_back(0);
-		//	indices.push_back(1);
-		//	indices.push_back(2);
-
-		//	indices.push_back(0);
-		//	indices.push_back(2);
-		//	indices.push_back(4);
-
-		//	indices.push_back(4);
-		//	indices.push_back(2);
-		//	indices.push_back(3);
-
-		//	std::vector<VertexAttribute> attributes;
-		//	attributes.push_back(VertexAttribute{ 3, GL_FLOAT, sizeof(Vertex), offsetof(Vertex, position) });
-		//	attributes.push_back(VertexAttribute{ 2, GL_FLOAT, sizeof(Vertex), offsetof(Vertex, uv) });
-		//	attributes.push_back(VertexAttribute{ 3, GL_FLOAT, sizeof(Vertex), offsetof(Vertex, normal) });
-		//	attributes.push_back(VertexAttribute{ 3, GL_FLOAT, sizeof(Vertex), offsetof(Vertex, tangent) });
-
-		//	renderables.push_back(Renderable());
-		//	auto& renderable = renderables.back();
-		//	renderable.addMesh_inplace(vertices, attributes, indices);
-		//	renderable.initialize();
-		//}
-
-		{ // 3.3 (sphere required)
-			auto result = OBJLoader::loadOBJ("assets/models/icosahedron.obj", false, false);
-
-			for (auto& object : result.objects) {
-				renderables.push_back(Renderable());
-				auto& renderable = renderables.back();
-
-				for (auto& mesh : object.meshes) {
-					renderable.addMesh_inplace(mesh.vertices, mesh.atts, mesh.indices);
-				}
-				renderable.initialize();
-			}
+			ground->scale(glm::vec3(0.01f, 0.01f, 0.01f));
+			ground->rotate(glm::angleAxis(glm::radians(30.0f), glm::vec3(1.0f, 0.0f, 0.0f)));
 		}
 
 
@@ -91,22 +71,42 @@ void Scene::shutdown()
 
 void Scene::render(float dt)
 {
-	glClear(GL_COLOR_BUFFER_BIT);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	m_shader->use();
 
-	timecounter += dt;
+	timecounter += dt*0.5f;
 	if (timecounter >= 1.0f) timecounter = 0.0f;
 	m_shader->setUniform("color", timecounter);
 
 	for(auto& renderable: renderables){
-		renderable.render();
+		renderable->render(*m_shader);
 	}
 
 }
 
 void Scene::update(float dt)
 {
+	//glm::vec3 translation(0.0f,0.0f,0.0f);
+	//if (m_window->getInput().getKeyState(Key::W) == KeyState::Pressed)
+	//	translation.y += 1.0f * dt;
+	//if (m_window->getInput().getKeyState(Key::S) == KeyState::Pressed)
+	//	translation.y += -1.0f * dt;
+	//if (m_window->getInput().getKeyState(Key::A) == KeyState::Pressed)
+	//	translation.x += -1.0f * dt;
+	//if (m_window->getInput().getKeyState(Key::D) == KeyState::Pressed)
+	//	translation.x += 1.0f * dt;
+	//r_spheres->translate(translation);
 
+	glm::quat rotation(0.0f, 0.0f, 0.0f, 0.0f);
+	if (m_window->getInput().getKeyState(Key::W) == KeyState::Pressed)
+		rotation = glm::angleAxis(glm::radians(30.0f * dt), glm::vec3(1.0f, 0.0f, 0.0f));
+	if (m_window->getInput().getKeyState(Key::S) == KeyState::Pressed)
+		rotation = glm::angleAxis(glm::radians(-30.0f * dt), glm::vec3(1.0f, 0.0f, 0.0f));
+	if (m_window->getInput().getKeyState(Key::A) == KeyState::Pressed)
+		rotation = glm::angleAxis(glm::radians(30.0f * dt), glm::vec3(0.0f, 1.0f, 0.0f));
+	if (m_window->getInput().getKeyState(Key::D) == KeyState::Pressed)
+		rotation = glm::angleAxis(glm::radians(-30.0f * dt), glm::vec3(0.0f, 1.0f, 0.0f));
+	r_ground->rotate(rotation);
 }
 
 GameWindow * Scene::getWindow()
@@ -137,4 +137,23 @@ void Scene::onMouseScroll(double xscroll, double yscroll)
 void Scene::onFrameBufferResize(int width, int height)
 {
 
+}
+
+Renderable* Scene::addObject(std::string path, bool reverseWinding)
+{
+	auto result = OBJLoader::loadOBJ(path, false, false);
+	auto base = new Renderable();
+	renderables.push_back(base);
+
+	for (auto& object : result.objects) {
+		auto child = new Renderable();
+		renderables.push_back(child);
+		child->setParent(base);
+		for (auto& mesh : object.meshes) {
+			if(reverseWinding)
+				OBJLoader::reverseWinding(mesh);
+			child->addMesh_inplace(mesh.vertices, mesh.atts, mesh.indices);
+		}
+	}
+	return base;
 }

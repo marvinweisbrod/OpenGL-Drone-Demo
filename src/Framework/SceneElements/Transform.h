@@ -1,16 +1,20 @@
 #ifndef _TRANSFORM_H_
 #define _TRANSFORM_H_
 #include <libheaders.h>
+#include <set>
+
 class Transform
 {
 private:
+	Transform* m_parent = nullptr;
+	std::set<Transform*> m_children;
 	glm::mat4 m_transformMatrix;
-	bool m_matrixDirty;
+	bool m_matrixDirty = true;
 
 	glm::vec3 m_position;
 	glm::quat m_rotation;
 	glm::vec3 m_scale;
-			  
+
 	glm::vec3 m_xaxis;
 	glm::vec3 m_yaxis;
 	glm::vec3 m_zaxis;
@@ -26,6 +30,12 @@ public:
 	Transform& operator=(Transform&& other) = default;
 	Transform(const glm::mat4& transformMatrix);
 	Transform(const glm::vec3& position, const glm::quat& rotation, const glm::vec3& scale);
+
+	void setParent(Transform* parent);
+	Transform* getParent();
+	void addChild(Transform* child);
+	void removeChild(Transform* child);
+	void markDirty();
 
 	const glm::vec3& getPosition();
 	const glm::quat& getRotation();
@@ -55,6 +65,6 @@ public:
 	glm::vec3 getDirection();
 	void lookinto(const glm::vec3& direction);
 
-	glm::mat4 getInverseMatrix();	
+	glm::mat4 getInverseMatrix();
 };
 #endif

@@ -1,94 +1,95 @@
 #include "Transform.h"
-
+#include <iostream>
 
 
 void Transform::updateTransformMatrix()
 {
-	m_transformMatrix = glm::translate(m_position) * glm::toMat4(m_rotation) * glm::scale(m_scale);
+	if (!m_matrixDirty) return;
+	if(m_parent)
+		m_transformMatrix = m_parent->getTransformMatrix() * glm::translate(m_position) * glm::toMat4(m_rotation) * glm::scale(m_scale);
+	else 
+		m_transformMatrix = glm::translate(m_position) * glm::toMat4(m_rotation) * glm::scale(m_scale);
 
 	m_xaxis = glm::normalize(glm::vec3(m_transformMatrix[0]));
 	m_yaxis = glm::normalize(glm::vec3(m_transformMatrix[1]));
 	m_zaxis = glm::normalize(glm::vec3(m_transformMatrix[2]));
+
+	m_matrixDirty = false;
 }
 
 Transform::Transform() :
 	m_position(0.0f),
-	m_rotation(),
+	m_rotation(1, 0, 0, 0),
 	m_scale(1.0f),
 	m_transformMatrix(),
 	m_xaxis(1.0f, 0.0f, 0.0f),
 	m_yaxis(0.0f, 1.0f, 0.0f),
-	m_zaxis(0.0f, 1.0f, 0.0f),
-	m_matrixDirty(true)
-{}
+	m_zaxis(0.0f, 1.0f, 0.0f)
+{
+	std::cout << m_children.size() << "\n";
+}
 
-Transform::Transform(const glm::mat4 & transformMatrix) :
+Transform::Transform(const glm::mat4& transformMatrix) :
 	m_position(transformMatrix[3]),
 	m_rotation(glm::quat_cast(transformMatrix)),
 	m_scale(glm::length(glm::vec3(transformMatrix[0])), glm::length(glm::vec3(transformMatrix[1])), glm::length(glm::vec3(transformMatrix[2]))),
 	m_transformMatrix(transformMatrix),
 	m_xaxis(glm::normalize(glm::vec3(transformMatrix[0]))),
 	m_yaxis(glm::normalize(glm::vec3(transformMatrix[1]))),
-	m_zaxis(glm::normalize(glm::vec3(transformMatrix[2]))),
-	m_matrixDirty(true)
+	m_zaxis(glm::normalize(glm::vec3(transformMatrix[2])))
 {
 }
 
-Transform::Transform(const glm::vec3 & position, const glm::quat & rotation, const glm::vec3 & scale) :
+Transform::Transform(const glm::vec3& position, const glm::quat& rotation, const glm::vec3& scale) :
 	m_position(position),
 	m_rotation(rotation),
 	m_scale(scale),
-	m_transformMatrix(glm::translate(position) * glm::toMat4(rotation) * glm::scale(scale)),
+	m_transformMatrix(glm::translate(position)* glm::toMat4(rotation)* glm::scale(scale)),
 	m_xaxis(glm::normalize(glm::vec3(toMat3(rotation)[0]))),
 	m_yaxis(glm::normalize(glm::vec3(toMat3(rotation)[1]))),
-	m_zaxis(glm::normalize(glm::vec3(toMat3(rotation)[2]))),
-	m_matrixDirty(true)
+	m_zaxis(glm::normalize(glm::vec3(toMat3(rotation)[2])))
 {}
 
-const glm::vec3 & Transform::getPosition()
+const glm::vec3& Transform::getPosition()
 {
 	return m_position;
 }
 
-const glm::quat & Transform::getRotation()
+const glm::quat& Transform::getRotation()
 {
 	return m_rotation;
 }
 
-const glm::vec3 & Transform::getScale()
+const glm::vec3& Transform::getScale()
 {
 	return m_scale;
 }
 
-void Transform::setPosition(const glm::vec3 & position)
+void Transform::setPosition(const glm::vec3& position)
 {
 	m_position = position;
-	m_matrixDirty = true;
+	markDirty();
 }
 
-void Transform::setRotation(const glm::quat & rotation)
+void Transform::setRotation(const glm::quat& rotation)
 {
 	m_rotation = rotation;
-	m_matrixDirty = true;
+	markDirty();
 }
 
-void Transform::setScale(const glm::vec3 & scale)
+void Transform::setScale(const glm::vec3& scale)
 {
 	m_scale = scale;
-	m_matrixDirty = true;
+	markDirty();
 }
 
-const glm::mat4 & Transform::getMatrix()
+const glm::mat4& Transform::getMatrix()
 {
-	if (m_matrixDirty)
-	{
-		updateTransformMatrix();
-		m_matrixDirty = false;
-	}
+	updateTransformMatrix();
 	return m_transformMatrix;
 }
 
-void Transform::setMatrix(const glm::mat4 & matrix)
+void Transform::setMatrix(const glm::mat4& matrix)
 {
 	Transform tmp(matrix);
 	m_position = tmp.m_position;
@@ -98,76 +99,62 @@ void Transform::setMatrix(const glm::mat4 & matrix)
 	m_xaxis = tmp.m_xaxis;
 	m_yaxis = tmp.m_yaxis;
 	m_zaxis = tmp.m_zaxis;
-	m_matrixDirty = false;
+	markDirty();
 }
 
-void Transform::translate(const glm::vec3 & deltaPos)
+void Transform::translate(const glm::vec3& deltaPos)
 {
 	m_position += deltaPos;
-	m_matrixDirty = true;
+	markDirty();
 }
 
-void Transform::translateLocal(const glm::vec3 & deltaPos)
+void Transform::translateLocal(const glm::vec3& deltaPos)
 {
 	m_position += deltaPos.x * m_xaxis + deltaPos.y * m_yaxis + deltaPos.z * m_zaxis;
-	m_matrixDirty = true;
+	markDirty();
 }
 
-void Transform::rotate(const glm::quat & deltaRot)
+void Transform::rotate(const glm::quat& deltaRot)
 {
+
 	m_rotation = glm::normalize(deltaRot * m_rotation);
-	m_matrixDirty = true;
+	markDirty();
+
 }
 
-void Transform::rotateLocal(const glm::quat & deltaRot)
+void Transform::rotateLocal(const glm::quat& deltaRot)
 {
 	m_rotation = glm::normalize(m_rotation * deltaRot);
-	m_matrixDirty = true;
+	markDirty();
 }
 
-void Transform::scale(const glm::vec3 & scale)
+void Transform::scale(const glm::vec3& scale)
 {
 	m_scale *= scale;
-	m_matrixDirty = true;
+	markDirty();
 }
 
-const glm::vec3 & Transform::getXAxis()
+const glm::vec3& Transform::getXAxis()
 {
-	if (m_matrixDirty)
-	{
-		updateTransformMatrix();
-		m_matrixDirty = false;
-	}
+	updateTransformMatrix();
 	return m_xaxis;
 }
 
-const glm::vec3 & Transform::getYAxis()
+const glm::vec3& Transform::getYAxis()
 {
-	if (m_matrixDirty)
-	{
-		updateTransformMatrix();
-		m_matrixDirty = false;
-	}
+	updateTransformMatrix();
 	return m_yaxis;
 }
 
-const glm::vec3 & Transform::getZAxis()
+const glm::vec3& Transform::getZAxis()
 {
-	if (m_matrixDirty)
-	{
-		updateTransformMatrix();
-		m_matrixDirty = false;
-	}
+	updateTransformMatrix();
 	return m_zaxis;
 }
 
-const glm::mat4 & Transform::getTransformMatrix()
+const glm::mat4& Transform::getTransformMatrix()
 {
-	if (m_matrixDirty)
-	{
-		updateTransformMatrix();
-		m_matrixDirty = false;
-	}
+	updateTransformMatrix();
 	return m_transformMatrix;
 }
 
@@ -176,7 +163,7 @@ glm::vec3 Transform::getDirection()
 	return -getZAxis();
 }
 
-void Transform::lookinto(const glm::vec3 & direction)
+void Transform::lookinto(const glm::vec3& direction)
 {
 	glm::vec3 ndir(glm::normalize(-direction));
 	glm::vec3 right = glm::normalize(glm::cross(glm::vec3(0.0f, 1.0f, 0.0f), ndir));
@@ -190,14 +177,41 @@ void Transform::lookinto(const glm::vec3 & direction)
 
 glm::mat4 Transform::getInverseMatrix()
 {
-	if (m_matrixDirty)
-	{
-		updateTransformMatrix();
-		m_matrixDirty = false;
-	}
+	updateTransformMatrix();
 	return glm::inverse(m_transformMatrix);
 }
 
+void Transform::setParent(Transform* parent) {
+	m_parent = parent;
+	if(m_parent)
+		m_parent->addChild(this);
+}
+
+Transform* Transform::getParent() {
+	return m_parent;
+}
+
+void Transform::addChild(Transform* child)
+{
+	std::cout << m_children.size() << "\n";
+	if(child)
+		m_children.insert(child);
+}
+
+void Transform::removeChild(Transform* child)
+{
+	m_children.erase(child);
+}
+
+void Transform::markDirty()
+{
+	m_matrixDirty = true;
+	for (auto child : m_children)
+		child->markDirty();
+}
 
 Transform::~Transform()
-{}
+{
+	if (m_parent)
+		m_parent->removeChild(this);
+}

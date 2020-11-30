@@ -4,14 +4,10 @@ Renderable::Renderable()
 {
 }
 
-void Renderable::initialize()
+void Renderable::render(ShaderProgram& shader)
 {
-	for (auto& mesh : m_meshes)
-		mesh.initialize();
-}
-
-void Renderable::render()
-{
+	if (m_meshes.empty()) return;
+	shader.setUniform("modelView", getTransformMatrix(), false);
 	for (auto& mesh : m_meshes)
 		mesh.render();
 }
@@ -19,11 +15,9 @@ void Renderable::render()
 void Renderable::addMesh(Mesh& mesh)
 {
 	m_meshes.push_back(mesh);
-	initialized = false;
 }
 
 void Renderable::addMesh_inplace(std::vector<Vertex>& vertices, std::vector<VertexAttribute>& vertexAttributes, std::vector<Index>& indices)
 {
 	m_meshes.emplace_back(vertices, vertexAttributes, indices);
-	initialized = false;
 }

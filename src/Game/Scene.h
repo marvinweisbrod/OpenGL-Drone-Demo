@@ -32,7 +32,13 @@ private:
     GLuint vaoID, vboID, eboID;
 	GLuint vertexCount = 0;
 
-	std::vector<Renderable> renderables;
+	std::vector<Renderable*> renderables;
 	float timecounter=0.0f;
+
+	// Scene Objects
+	Renderable* r_ground;
+	Renderable* r_spheres;
+
+	Renderable* addObject(std::string path, bool reverseWinding = false);
 };
 
