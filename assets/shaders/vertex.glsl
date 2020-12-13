@@ -6,6 +6,9 @@ layout (location = 2) in vec3 normal;
 layout (location = 3) in vec3 tangent;
 
 uniform float color;
+uniform mat4 modelMat;
+uniform mat4 viewMat;
+uniform mat4 projMat;
 
 out vec3 colorVS;
 
@@ -22,7 +25,8 @@ vec3 colorFromFloat(float number){
 }
 
 void main(){
-    colorVS = colorFromFloat(color);
-    gl_Position = vec4(pos.x, pos.y, 0.0, 1.0);
+    //colorVS = colorFromFloat(color* clamp(((pos.x + pos.y + pos.z + 3)/6), 0.0, 1.0));
+	colorVS = colorFromFloat(clamp(((pos.x + pos.y + pos.z + 3)/6), 0.0, 1.0));
+    gl_Position = projMat * viewMat * modelMat * vec4(pos.x, pos.y, pos.z, 1.0);
 
 }

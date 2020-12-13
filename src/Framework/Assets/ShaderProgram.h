@@ -2,7 +2,7 @@
 #define _SHADER_PROGRAM_H_
 #include <libheaders.h>
 #include <glerror.h>
-
+#include "Camera.h"
 
 class ShaderProgram
 {
@@ -15,6 +15,7 @@ public:
 	ShaderProgram& operator=(ShaderProgram&& other);
 	~ShaderProgram();
 	void use();
+	void bind(Camera& camera);
 	GLuint prog;
 	GLuint currentTu;
 

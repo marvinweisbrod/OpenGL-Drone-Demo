@@ -163,16 +163,25 @@ glm::vec3 Transform::getDirection()
 	return -getZAxis();
 }
 
-void Transform::lookinto(const glm::vec3& direction)
+void Transform::lookinto(const glm::vec3& direction, const glm::vec3& trueUp)
 {
 	glm::vec3 ndir(glm::normalize(-direction));
-	glm::vec3 right = glm::normalize(glm::cross(glm::vec3(0.0f, 1.0f, 0.0f), ndir));
+	glm::vec3 right = glm::normalize(glm::cross(trueUp, ndir));
 	glm::vec3 up = glm::normalize(glm::cross(ndir, right));
 
 	//construct a 3x3 rotation matrix from direction and global up vector
 	glm::mat3 rot(right, up, ndir);
 
 	setRotation(glm::quat_cast(rot));
+	markDirty();
+}
+
+void Transform::lookat(const glm::vec3& point, const glm::vec3& up)
+{
+	//auto result = glm::lookAt(getPosition(), point, up);
+	updateTransformMatrix();
+	auto direction = glm::normalize(point - getPosition());
+	lookinto(direction, up);
 }
 
 glm::mat4 Transform::getInverseMatrix()
@@ -185,6 +194,7 @@ void Transform::setParent(Transform* parent) {
 	m_parent = parent;
 	if(m_parent)
 		m_parent->addChild(this);
+	markDirty();
 }
 
 Transform* Transform::getParent() {
@@ -214,4 +224,7 @@ Transform::~Transform()
 {
 	if (m_parent)
 		m_parent->removeChild(this);
+	for (auto& child : m_children) {
+		child->setParent(m_parent);
+	}
 }

@@ -6,6 +6,7 @@
 #include <AssetManager.h>
 #include <vector>
 #include "Renderable.h"
+#include <memory>
 
 class Scene
 {
@@ -31,14 +32,17 @@ private:
     ShaderProgram* m_shader;
     GLuint vaoID, vboID, eboID;
 	GLuint vertexCount = 0;
+	float currentAspect;
 
-	std::vector<Renderable*> renderables;
+	std::vector<std::shared_ptr<Renderable>> renderables;
 	float timecounter=0.0f;
 
 	// Scene Objects
-	Renderable* r_ground;
-	Renderable* r_spheres;
-
-	Renderable* addObject(std::string path, bool reverseWinding = false);
+	std::shared_ptr<Renderable> r_ground;
+	std::shared_ptr<Renderable> r_spheres;
+	std::shared_ptr<Camera> followCamera;
+	std::shared_ptr<Camera> freeCamera;
+	bool currentCameraFree = false;
+	std::shared_ptr<Renderable> addObject(std::string path, bool reverseWinding = false);
 };
 

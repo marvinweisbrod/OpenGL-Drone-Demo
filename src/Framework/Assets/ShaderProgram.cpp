@@ -49,6 +49,14 @@ void ShaderProgram::use()
 			glUseProgram(prog); GLERR
 }
 
+void ShaderProgram::bind(Camera& camera)
+{
+	auto test = camera.getViewMatrix();
+	//setUniform("viewMat", camera.getViewMatrix(), false);
+	setUniform("viewMat", test, false);
+	setUniform("projMat", camera.getProjectionMatrix(), false);
+}
+
 GLuint ShaderProgram::getFreeTU()
 {
 	return currentTu++;

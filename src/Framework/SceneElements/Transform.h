@@ -64,8 +64,8 @@ public:
 	const glm::mat4& getTransformMatrix();
 
 	glm::vec3 getDirection();
-	void lookinto(const glm::vec3& direction);
-
+	void lookinto(const glm::vec3& direction, const glm::vec3& up = glm::vec3(0.0f,1.0f,0.0f));
+	void lookat(const glm::vec3& point, const glm::vec3& up = glm::vec3(0.0f, 1.0f, 0.0f));
 	glm::mat4 getInverseMatrix();
 };
 #endif

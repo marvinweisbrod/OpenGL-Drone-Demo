@@ -10,6 +10,8 @@ list(APPEND SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/src/Mesh.h")
 list(APPEND SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/src/Mesh.cpp")
 list(APPEND SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/src/Renderable.h")
 list(APPEND SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/src/Renderable.cpp")
+list(APPEND SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/src/Camera.h")
+list(APPEND SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/src/Camera.cpp")
 
 ## Framework/Assets
 list(APPEND SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/src/Framework/Assets/AssetManager.h")
