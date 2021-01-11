@@ -29,40 +29,43 @@ bool Scene::init()
 		glEnable(GL_DEPTH_TEST);
 		glDepthFunc(GL_LESS);
 
-		{
-			auto sphere = addObject("assets/models/sphere.obj", false);
-			sphere->scale(glm::vec3(0.5f, 0.5f, 0.5f));
-			r_spheres = sphere;
-			// "ears"
-			auto sphere2 = addObject("assets/models/sphere.obj", false);
-			auto sphere3 = addObject("assets/models/sphere.obj", false);
-			sphere2->scale(glm::vec3(0.6f, 0.6f, 0.6f));
-			sphere3->scale(glm::vec3(0.6f, 0.6f, 0.6f));
-			sphere2->translate(glm::vec3(-1.0f,1.0f,0.0f));
-			sphere3->translate(glm::vec3(1.0f, 1.0f, 0.0f));
-			sphere2->setParent(sphere.get());
-			sphere3->setParent(sphere.get());
+		{// BIKE
+			r_bike = std::make_shared<Renderable>();
+			renderables.push_back(r_bike);
+			auto model = addBike("assets/models/HQ_Movie cycle.obj");
+			model->scale(glm::vec3(0.5f, 0.5f, 0.5f));
+			model->translateLocal(glm::vec3(0.0f, 0.00f, -0.02f));
+			model->rotate(glm::angleAxis(glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f)));
+			model->setParent(r_bike.get());
 		}
-		{
-			auto ground = addObject("assets/models/ground.obj", false);
+		{// GROUND
+			auto ground = addObject("assets/models/ground.obj"
+				, "assets/textures/ground_diff.png"
+				, "assets/textures/ground_spec.png"
+				, "assets/textures/ground_emit.png", 100.0f);
 			r_ground = ground;
-
-			ground->scale(glm::vec3(0.05f, 0.05f, 0.05f));
-			ground->translate(glm::vec3(0.0f, -1.0f, 0.0f));
-			//ground->rotate(glm::angleAxis(glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f)));
+			ground->scale(glm::vec3(0.5f, 0.01f, 0.5f));
+			ground->translate(glm::vec3(0.0f, 0.0f, 0.0f));
 		}
-		{	// camera child of sphere
+		{// CAM FOLLOW
 			followCamera = std::make_shared<Camera>();
 			followCamera->setPerspective(glm::radians(60.0f), currentAspect, 0.01f, 100.0f);
-			followCamera->translate(glm::vec3(3.0f, 3.0f, -3.5f));
+			followCamera->translate(glm::vec3(-2.0f, 2.0f, 0.0f));
 			followCamera->lookat(glm::vec3(0.0f,0.0f,0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-			followCamera->setParent(r_spheres.get());
+			//followCamera->rotateLocal(glm::angleAxis(glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f)));
+			followCamera->setParent(r_bike.get());
 		}
-		{	// camera free moving
+		{// CAM FREE
 			freeCamera = std::make_shared<Camera>();
 			freeCamera->setPerspective(glm::radians(60.0f), currentAspect, 0.01f, 100.0f);
 			freeCamera->translate(glm::vec3(0.0f, 0.0f, -1.5f));
 			freeCamera->lookat(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+		}
+		{// LIGHTS
+			ambientLight = glm::vec4(0.1, 0.1, 0.1, 1.0);
+			pointLight = std::make_shared<PointLight>(glm::vec3(0.0f,2.0f,0.0f), glm::vec4(0.8f,0.8f,1.0f,1.0f));
+			spotLight = std::make_shared<SpotLight>(glm::vec3(1.0f, 0.25f, 0.0f), glm::vec3(1.0f,0.0f,0.0f), glm::radians(30.0f), glm::radians(60.0f), glm::vec4(1.0f, 0.9f, 0.7f, 1.0f));
+			spotLight->setParent(r_bike.get());
 		}
 
 
@@ -89,9 +92,9 @@ void Scene::render(float dt)
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	m_shader->use();
 	m_shader->bind(currentCameraFree ? *freeCamera : *followCamera);
-	timecounter += dt*0.5f;
-	if (timecounter >= 1.0f) timecounter = 0.0f;
-	m_shader->setUniform("color", timecounter);
+	m_shader->bind(*pointLight);
+	m_shader->bind(*spotLight);
+	m_shader->setUniform("ambient", ambientLight);
 
 	for(auto& renderable: renderables){
 		renderable->render(*m_shader);
@@ -117,17 +120,23 @@ void Scene::update(float dt)
 			translation.y += -1.0f * dt;
 		freeCamera->translateLocal(translation);
 	} 
-	else {  // sphere movement
+	else {  // bike movement
 		glm::vec3 translation(0.0f, 0.0f, 0.0f);
+		float turn = 0.0f;
 		if (m_window->getInput().getKeyState(Key::Up) == KeyState::Pressed)
-			translation.y += 1.0f * dt;
-		if (m_window->getInput().getKeyState(Key::Down) == KeyState::Pressed)
-			translation.y += -1.0f * dt;
-		if (m_window->getInput().getKeyState(Key::Left) == KeyState::Pressed)
 			translation.x += 1.0f * dt;
-		if (m_window->getInput().getKeyState(Key::Right) == KeyState::Pressed)
+		if (m_window->getInput().getKeyState(Key::Down) == KeyState::Pressed)
 			translation.x += -1.0f * dt;
-		r_spheres->translate(translation);
+		if (m_window->getInput().getKeyState(Key::Left) == KeyState::Pressed)
+			turn += 1.0f * dt;
+		if (m_window->getInput().getKeyState(Key::Right) == KeyState::Pressed)
+			turn += -1.0f * dt;
+		if (turn != 0.0f) {
+			auto rotation = glm::angleAxis(glm::radians(turn*100), glm::vec3(0.0,1.0,0.0));
+			r_bike->rotateLocal(rotation);
+		}
+		
+		r_bike->translateLocal(translation*3.0f);
 	}
 	{ // cam switching
 		if (m_window->getInput().getKeyState(Key::K1) == KeyState::Pressed)
@@ -151,8 +160,8 @@ void Scene::onMouseMove(MousePosition mouseposition)
 {
 	if (currentCameraFree) {
 		glm::vec3 camDir = freeCamera->getDirection();
-		float xMovement = -(mouseposition.X - mouseposition.oldX);
-		float yMovement = mouseposition.Y - mouseposition.oldY;
+		float xMovement = static_cast<float>(-(mouseposition.X - mouseposition.oldX));
+		float yMovement = static_cast<float>(mouseposition.Y - mouseposition.oldY);
 		auto rotDirection = glm::vec3(xMovement, yMovement, 0.0f);
 		float length = glm::length(rotDirection);
 		rotDirection = glm::normalize(rotDirection);
@@ -180,7 +189,7 @@ void Scene::onFrameBufferResize(int width, int height)
 		freeCamera->setPerspective(glm::radians(60.0f), currentAspect, 0.01f, 100.0f);
 }
 
-std::shared_ptr<Renderable> Scene::addObject(std::string path, bool reverseWinding)
+std::shared_ptr<Renderable> Scene::addObject(std::string path, std::string texDiff, std::string texSpec, std::string texEmss, float uvScale, bool reverseWinding)
 {
 	auto result = OBJLoader::loadOBJ(path, false, false);
 	auto base = std::make_shared<Renderable>();
@@ -193,7 +202,69 @@ std::shared_ptr<Renderable> Scene::addObject(std::string path, bool reverseWindi
 		for (auto& mesh : object.meshes) {
 			if(reverseWinding)
 				OBJLoader::reverseWinding(mesh);
-			child->addMesh_inplace(mesh.vertices, mesh.atts, mesh.indices);
+			child->addMesh(std::make_shared<Mesh>(mesh.vertices, mesh.atts, mesh.indices, texDiff, texSpec, texEmss, uvScale));
+		}
+	}
+	return base;
+}
+
+std::shared_ptr<Renderable> Scene::addBike(std::string path, bool reverseWinding)
+{
+	auto result = OBJLoader::loadOBJ(path, false, false);
+	auto base = std::make_shared<Renderable>();
+	renderables.push_back(base);
+
+	for (auto& object : result.objects) {
+		auto child = std::make_shared<Renderable>();
+		renderables.push_back(child);
+		child->setParent(base.get());
+		int meshCounter = 0;
+		for (auto& mesh : object.meshes) {
+			if (reverseWinding)
+				OBJLoader::reverseWinding(mesh);
+			if (meshCounter == 0)
+				child->addMesh(std::make_shared<Mesh>(mesh.vertices, mesh.atts, mesh.indices
+				, "assets/textures/MG_MovieCycle_Body_DIFF.tga"
+				, "assets/textures/MG_MovieCycle_Body_SPEC.tga"
+				, "assets/textures/MG_MovieCycle_Body_EMSS.tga"));
+			if (meshCounter == 1)
+				child->addMesh(std::make_shared<Mesh>(mesh.vertices, mesh.atts, mesh.indices
+					, "assets/textures/black.png"
+					, "assets/textures/black.png"
+					, "assets/textures/black.png"));
+			if (meshCounter == 2)
+				child->addMesh(std::make_shared<Mesh>(mesh.vertices, mesh.atts, mesh.indices
+					, "assets/textures/MG_MovieCycle_Tire_DIFF.tga"
+					, "assets/textures/MG_MovieCycle_Tire_SPEC.tga"
+					, "assets/textures/MG_MovieCycle_Tire_EMSS.tga"));
+			if (meshCounter == 3)
+				child->addMesh(std::make_shared<Mesh>(mesh.vertices, mesh.atts, mesh.indices
+					, "assets/textures/MG_MovieCycle_Engine_DIFF.tga"
+					, "assets/textures/MG_MovieCycle_Engine_SPEC.tga"
+					, "assets/textures/MG_MovieCycle_Engine_EMSS.tga"));
+			if (meshCounter == 4)
+				child->addMesh(std::make_shared<Mesh>(mesh.vertices, mesh.atts, mesh.indices
+					, "assets/textures/MG_Player_Body_DIFF.tga"
+					, "assets/textures/MG_Player_Body_SPEC.tga"
+					, "assets/textures/MG_Player_Body_EMSS.tga"));
+			if (meshCounter == 5)
+				child->addMesh(std::make_shared<Mesh>(mesh.vertices, mesh.atts, mesh.indices
+					, "assets/textures/MG_Player_Helmet_DIFF.tga"
+					, "assets/textures/MG_Player_Helmet_SPEC.tga"
+					, "assets/textures/MG_Player_Helmet_EMSS.tga"));
+			if (meshCounter == 6)
+				child->addMesh(std::make_shared<Mesh>(mesh.vertices, mesh.atts, mesh.indices
+					, "assets/textures/MG_Player_Disc_DIFF.tga"
+					, "assets/textures/MG_Player_Disc_SPEC.tga"
+					, "assets/textures/MG_Player_Disc_EMSS.tga"));
+			if (meshCounter == 7)
+				child->addMesh(std::make_shared<Mesh>(mesh.vertices, mesh.atts, mesh.indices
+					, "assets/textures/MG_Player_Baton_DIFF.tga"
+					, "assets/textures/MG_Player_Baton_SPEC.tga"
+					, "assets/textures/MG_Player_Baton_EMSS.tga"));
+
+
+			meshCounter++;
 		}
 	}
 	return base;

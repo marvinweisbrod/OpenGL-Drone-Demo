@@ -12,6 +12,12 @@ list(APPEND SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/src/Renderable.h")
 list(APPEND SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/src/Renderable.cpp")
 list(APPEND SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/src/Camera.h")
 list(APPEND SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/src/Camera.cpp")
+list(APPEND SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/src/SpotLight.h")
+list(APPEND SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/src/SpotLight.cpp")
+list(APPEND SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/src/PointLight.h")
+list(APPEND SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/src/PointLight.cpp")
+list(APPEND SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/src/Texture2D.h")
+list(APPEND SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/src/Texture2D.cpp")
 
 ## Framework/Assets
 list(APPEND SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/src/Framework/Assets/AssetManager.h")

@@ -3,6 +3,8 @@
 #include <libheaders.h>
 #include <glerror.h>
 #include "Camera.h"
+#include <PointLight.h>
+#include <SpotLight.h>
 
 class ShaderProgram
 {
@@ -16,6 +18,8 @@ public:
 	~ShaderProgram();
 	void use();
 	void bind(Camera& camera);
+	void bind(PointLight& plight);
+	void bind(SpotLight& slight);
 	GLuint prog;
 	GLuint currentTu;
 

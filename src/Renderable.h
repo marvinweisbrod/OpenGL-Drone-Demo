@@ -5,6 +5,7 @@
 #include "Transform.h"
 #include "ShaderProgram.h"
 #include <libheaders.h>
+#include <memory>
 
 #include <vector>
 
@@ -13,8 +14,7 @@ public:
 	Renderable();
 	void render(ShaderProgram& shader);
 
-	void addMesh(Mesh& mesh);
-	void addMesh_inplace(std::vector<Vertex>& vertices, std::vector<VertexAttribute>& vertexAttributes, std::vector<Index>& indices);
+	void addMesh(std::shared_ptr<Mesh>& mesh);
 private:
-	std::vector<Mesh> m_meshes;
+	std::vector<std::shared_ptr<Mesh>> m_meshes;
 };

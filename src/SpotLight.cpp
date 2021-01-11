@@ -1,23 +1,10 @@
-#include "Renderable.h"
+#include "SpotLight.h"
 
-Renderable::Renderable()
+SpotLight::SpotLight(glm::vec3 position, glm::vec3 direction, float innerAngle, float outerAngle, glm::vec4 color)
+	: m_color(color)
+	, m_dir(direction)
+	, m_angleInner(innerAngle)
+	, m_angleOuter(outerAngle)
 {
-}
-
-void Renderable::render(ShaderProgram& shader)
-{
-	if (m_meshes.empty()) return;
-	shader.setUniform("modelMat", getTransformMatrix(), false);
-	for (auto& mesh : m_meshes)
-		mesh.render();
-}
-
-void Renderable::addMesh(Mesh& mesh)
-{
-	m_meshes.push_back(mesh);
-}
-
-void Renderable::addMesh_inplace(std::vector<Vertex>& vertices, std::vector<VertexAttribute>& vertexAttributes, std::vector<Index>& indices)
-{
-	m_meshes.emplace_back(vertices, vertexAttributes, indices);
+	setPosition(position);
 }

@@ -8,16 +8,14 @@ void Renderable::render(ShaderProgram& shader)
 {
 	if (m_meshes.empty()) return;
 	shader.setUniform("modelMat", getTransformMatrix(), false);
-	for (auto& mesh : m_meshes)
-		mesh.render();
+	shader.setUniform("modelMatInvT", getInverseMatrix(), true);
+	
+	for (auto& mesh : m_meshes) {
+		mesh->render(shader);
+	}
 }
 
-void Renderable::addMesh(Mesh& mesh)
+void Renderable::addMesh(std::shared_ptr<Mesh>& mesh)
 {
 	m_meshes.push_back(mesh);
-}
-
-void Renderable::addMesh_inplace(std::vector<Vertex>& vertices, std::vector<VertexAttribute>& vertexAttributes, std::vector<Index>& indices)
-{
-	m_meshes.emplace_back(vertices, vertexAttributes, indices);
 }
