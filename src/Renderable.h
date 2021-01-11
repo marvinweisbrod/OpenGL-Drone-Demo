@@ -2,18 +2,19 @@
 
 #include "CommonTypes.h"
 #include "Mesh.h"
+#include "Transform.h"
+#include "ShaderProgram.h"
 #include <libheaders.h>
+#include <memory>
+
 #include <vector>
 
-class Renderable {
+class Renderable : public Transform {
 public:
 	Renderable();
-	void initialize();
-	void render();
+	void render(ShaderProgram& shader);
 
-	void addMesh(Mesh& mesh);
-	void addMesh_inplace(std::vector<Vertex>& vertices, std::vector<VertexAttribute>& vertexAttributes, std::vector<Index>& indices);
+	void addMesh(std::shared_ptr<Mesh>& mesh);
 private:
-	std::vector<Mesh> m_meshes;
-	bool initialized = false;
+	std::vector<std::shared_ptr<Mesh>> m_meshes;
 };

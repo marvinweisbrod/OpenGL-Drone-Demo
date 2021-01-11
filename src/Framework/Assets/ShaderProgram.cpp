@@ -49,6 +49,36 @@ void ShaderProgram::use()
 			glUseProgram(prog); GLERR
 }
 
+void ShaderProgram::bind(Camera& camera)
+{
+	auto test = camera.getViewMatrix();
+	//setUniform("viewMat", camera.getViewMatrix(), false);
+	setUniform("viewMat", test, false);
+	test = glm::inverse(test);
+	setUniform("viewMatInv", test, false);
+	setUniform("projMat", camera.getProjectionMatrix(), false);
+}
+
+void ShaderProgram::bind(PointLight& plight)
+{
+	auto pos = (plight.getTransformMatrix() * glm::vec4(0.0f,0.0f,0.0f,1.0f));
+	setUniform("pointLightPos", pos);
+	auto test = plight.getColor();
+	setUniform("pointLightColor", test);
+}
+
+void ShaderProgram::bind(SpotLight& slight)
+{
+	auto pos = (slight.getTransformMatrix() * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
+	setUniform("spotLightPos", pos);
+	auto test = slight.getColor();
+	setUniform("spotLightColor", test);
+	auto dir = (slight.getTransformMatrix() * glm::vec4(slight.getDirection(), 0.0f));
+	setUniform("spotLightDir", dir);
+	auto angles = slight.getAnglesInnerOuter();
+	setUniform("spotLightAngles", angles);
+}
+
 GLuint ShaderProgram::getFreeTU()
 {
 	return currentTu++;

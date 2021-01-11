@@ -2,8 +2,8 @@
 
 
 Game::Game() : 
-GameWindow(	1280,				//width
-			720,				//height
+GameWindow(	1920,				//width
+			1080,				//height
 			false,				//fullscreen
 			false,				//vsync
 			3,					//OpenGL Version Major

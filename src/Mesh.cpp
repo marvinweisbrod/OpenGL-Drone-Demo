@@ -1,56 +1,55 @@
 #include "Mesh.h"
 #include <iostream>
 
-Mesh::Mesh(std::vector<Vertex>& vertices, std::vector<VertexAttribute>& vertexAttributes, std::vector<Index>& indices)
-	: m_vertices(vertices)
-	, m_vertexAttributes(vertexAttributes)
-	, m_indices(indices)
+Mesh::Mesh(std::vector<Vertex>& vertices, std::vector<VertexAttribute>& vertexAttributes, std::vector<Index>& indices, std::string texDiff, std::string texSpec, std::string texEmss, float uvScale , float shine)
+	: m_texDiff(texDiff, true)
+	, m_texSpec(texSpec, true)
+	, m_texEmss(texEmss, true)
+	, m_shine(shine)
+	, m_uvScale(uvScale)
 {
-}
-
-void Mesh::initialize()
-{
-	if (initialized)
-		return;
-
 	// create buffers
 	glGenVertexArrays(1, &vaoID);
 	glGenBuffers(1, &vboID);
-	glGenBuffers(1, &eboID);
+	glGenBuffers(1, &iboID);
 
 	// bind VAO
 	glBindVertexArray(vaoID);
 
 	// configure VBO
 	glBindBuffer(GL_ARRAY_BUFFER, vboID);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex)*m_vertices.size(), m_vertices.data(), GL_STATIC_DRAW);
-	for (size_t i = 0; i < m_vertexAttributes.size(); ++i) {
-		auto& va = m_vertexAttributes.at(i);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * vertices.size(), vertices.data(), GL_STATIC_DRAW);
+	for (size_t i = 0; i < vertexAttributes.size(); ++i) {
+		auto& va = vertexAttributes.at(i);
 		glVertexAttribPointer(static_cast<GLuint>(i), va.n, va.type, GL_FALSE, va.stride, (void*)va.offset);
 		glEnableVertexAttribArray(static_cast<GLuint>(i));
 	}
 
 	// configure element array buffer
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, eboID);
-	auto size = sizeof(m_indices);
-	std::cout << size << "\n";
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(Index)*m_indices.size(), m_indices.data(), GL_STATIC_DRAW);
-
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, iboID);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(Index) * indices.size(), indices.data(), GL_STATIC_DRAW);
+	indexCount = static_cast<GLuint>(indices.size());
 	// unbind vao
 	glBindVertexArray(0);
-
-	initialized = true;
 }
 
-void Mesh::render()
+void Mesh::render(ShaderProgram& shader)
 {
-	if (!initialized) {
-		std::cout << "INFO:\t Attempting render when mesh is not initialized.\n";
-		return;
-	}
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, m_texDiff.getTexId());
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, m_texSpec.getTexId());
+	glActiveTexture(GL_TEXTURE2);
+	glBindTexture(GL_TEXTURE_2D, m_texEmss.getTexId());
+
+	shader.setUniform("shine", m_shine);
+	shader.setUniform("texUVScale", m_uvScale);
+	shader.setUniform("texDiffuse", 0);
+	shader.setUniform("texSpecular", 1);
+	shader.setUniform("texEmissive", 2);
 
 	glBindVertexArray(vaoID);
-	glDrawElements(GL_TRIANGLES, static_cast<GLuint>(m_indices.size()), GL_UNSIGNED_INT, 0);
+	glDrawElements(GL_TRIANGLES, indexCount, GL_UNSIGNED_INT, 0);
 	glBindVertexArray(0);
 }
 
@@ -59,5 +58,5 @@ Mesh::~Mesh()
 	std::cout << "Mesh destroyed\n";
 	glDeleteVertexArrays(1, &vaoID);
 	glDeleteBuffers(1, &vboID);
-	glDeleteBuffers(1, &eboID);
+	glDeleteBuffers(1, &iboID);
 }
