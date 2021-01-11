@@ -6,8 +6,8 @@
 class Camera : public Transform {
 public:
 	Camera();
-	const glm::mat4 getViewMatrix();
-	const glm::mat4 getProjectionMatrix();
+	glm::mat4 getViewMatrix();
+	glm::mat4 getProjectionMatrix();
 
 	void setPerspective(float theta, float aspect, float near, float far);
 private:

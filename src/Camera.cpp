@@ -5,12 +5,12 @@ Camera::Camera()
 {
 }
 
-const glm::mat4 Camera::getViewMatrix()
+glm::mat4 Camera::getViewMatrix()
 {
 	return getInverseMatrix();
 }
 
-const glm::mat4 Camera::getProjectionMatrix()
+glm::mat4 Camera::getProjectionMatrix()
 {
 	return perspective;
 }
