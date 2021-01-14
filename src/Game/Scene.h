@@ -37,7 +37,8 @@ private:
 
 	// Scene Objects
 	std::shared_ptr<Renderable> r_ground;
-	std::shared_ptr<Renderable> r_bike;
+	//std::shared_ptr<Renderable> r_bike;
+	std::shared_ptr<Renderable> r_drone;
 	std::shared_ptr<PointLight> pointLight;
 	std::shared_ptr<SpotLight> spotLight;
 	std::shared_ptr<Camera> followCamera;
@@ -46,5 +47,6 @@ private:
 	bool currentCameraFree = true;
 	std::shared_ptr<Renderable> addObject(std::string path, std::string texDiff, std::string texSpec, std::string texEmss, float uvScale = 1.0f, bool reverseWinding = false);
 	std::shared_ptr<Renderable> addBike(std::string path, bool reverseWinding = false);
+	std::shared_ptr<Renderable> addDrone(std::string path, bool reverseWinding = false);
 };
 

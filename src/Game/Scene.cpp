@@ -29,14 +29,23 @@ bool Scene::init()
 		glEnable(GL_DEPTH_TEST);
 		glDepthFunc(GL_LESS);
 
-		{// BIKE
-			r_bike = std::make_shared<Renderable>();
-			renderables.push_back(r_bike);
-			auto model = addBike("assets/models/HQ_Movie cycle.obj");
-			model->scale(glm::vec3(0.5f, 0.5f, 0.5f));
-			model->translateLocal(glm::vec3(0.0f, 0.00f, -0.02f));
-			model->rotate(glm::angleAxis(glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f)));
-			model->setParent(r_bike.get());
+		//{// BIKE
+		//	r_bike = std::make_shared<Renderable>();
+		//	renderables.push_back(r_bike);
+		//	auto model = addBike("assets/models/HQ_Movie cycle.obj");
+		//	model->scale(glm::vec3(0.5f, 0.5f, 0.5f));
+		//	model->translateLocal(glm::vec3(0.0f, 0.00f, -0.02f));
+		//	model->rotate(glm::angleAxis(glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f)));
+		//	model->setParent(r_bike.get());
+		//}
+		{// Drone
+			r_drone = std::make_shared<Renderable>();
+			renderables.push_back(r_drone);
+			auto model = addDrone("assets/models/Drone_red.obj");
+			model->scale(glm::vec3(0.005f, 0.005f, 0.005f));
+			r_drone->translateLocal(glm::vec3(0.0f, 0.00f, 0.5f));
+			//model->rotate(glm::angleAxis(glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f)));
+			model->setParent(r_drone.get());
 		}
 		{// GROUND
 			auto ground = addObject("assets/models/ground.obj"
@@ -50,10 +59,10 @@ bool Scene::init()
 		{// CAM FOLLOW
 			followCamera = std::make_shared<Camera>();
 			followCamera->setPerspective(glm::radians(60.0f), currentAspect, 0.01f, 100.0f);
-			followCamera->translate(glm::vec3(-2.0f, 2.0f, 0.0f));
+			followCamera->translate(glm::vec3(0.0f, 0.4f, -0.8f));
 			followCamera->lookat(glm::vec3(0.0f,0.0f,0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 			//followCamera->rotateLocal(glm::angleAxis(glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f)));
-			followCamera->setParent(r_bike.get());
+			followCamera->setParent(r_drone.get());
 		}
 		{// CAM FREE
 			freeCamera = std::make_shared<Camera>();
@@ -64,8 +73,8 @@ bool Scene::init()
 		{// LIGHTS
 			ambientLight = glm::vec4(0.1, 0.1, 0.1, 1.0);
 			pointLight = std::make_shared<PointLight>(glm::vec3(0.0f,2.0f,0.0f), glm::vec4(0.8f,0.8f,1.0f,1.0f));
-			spotLight = std::make_shared<SpotLight>(glm::vec3(1.0f, 0.25f, 0.0f), glm::vec3(1.0f,0.0f,0.0f), glm::radians(30.0f), glm::radians(60.0f), glm::vec4(1.0f, 0.9f, 0.7f, 1.0f));
-			spotLight->setParent(r_bike.get());
+			spotLight = std::make_shared<SpotLight>(glm::vec3(0.0f, 0.0f, 0.2f), glm::vec3(0.0f,0.0f,1.0f), glm::radians(30.0f), glm::radians(60.0f), glm::vec4(1.0f, 0.9f, 0.7f, 1.0f));
+			spotLight->setParent(r_drone.get());
 		}
 
 
@@ -124,19 +133,19 @@ void Scene::update(float dt)
 		glm::vec3 translation(0.0f, 0.0f, 0.0f);
 		float turn = 0.0f;
 		if (m_window->getInput().getKeyState(Key::Up) == KeyState::Pressed)
-			translation.x += 1.0f * dt;
+			translation.z += 1.0f * dt;
 		if (m_window->getInput().getKeyState(Key::Down) == KeyState::Pressed)
-			translation.x += -1.0f * dt;
+			translation.z += -1.0f * dt;
 		if (m_window->getInput().getKeyState(Key::Left) == KeyState::Pressed)
 			turn += 1.0f * dt;
 		if (m_window->getInput().getKeyState(Key::Right) == KeyState::Pressed)
 			turn += -1.0f * dt;
 		if (turn != 0.0f) {
 			auto rotation = glm::angleAxis(glm::radians(turn*100), glm::vec3(0.0,1.0,0.0));
-			r_bike->rotateLocal(rotation);
+			r_drone->rotateLocal(rotation);
 		}
 		
-		r_bike->translateLocal(translation*3.0f);
+		r_drone->translateLocal(translation*3.0f);
 	}
 	{ // cam switching
 		if (m_window->getInput().getKeyState(Key::K1) == KeyState::Pressed)
@@ -262,6 +271,53 @@ std::shared_ptr<Renderable> Scene::addBike(std::string path, bool reverseWinding
 					, "assets/textures/MG_Player_Baton_DIFF.tga"
 					, "assets/textures/MG_Player_Baton_SPEC.tga"
 					, "assets/textures/MG_Player_Baton_EMSS.tga"));
+
+
+			meshCounter++;
+		}
+	}
+	return base;
+}
+
+std::shared_ptr<Renderable> Scene::addDrone(std::string path, bool reverseWinding)
+{
+	auto result = OBJLoader::loadOBJ(path, false, false);
+	auto base = std::make_shared<Renderable>();
+	renderables.push_back(base);
+
+	for (auto& object : result.objects) {
+		auto child = std::make_shared<Renderable>();
+		renderables.push_back(child);
+		child->setParent(base.get());
+		int meshCounter = 0;
+		for (auto& mesh : object.meshes) {
+			if (reverseWinding)
+				OBJLoader::reverseWinding(mesh);
+			if (meshCounter == 0)
+				child->addMesh(std::make_shared<Mesh>(mesh.vertices, mesh.atts, mesh.indices
+					, "assets/textures/drone_diffuse.png"
+					, "assets/textures/drone_specular.png"
+					, "assets/textures/black.png"));
+			if (meshCounter == 1)
+				child->addMesh(std::make_shared<Mesh>(mesh.vertices, mesh.atts, mesh.indices
+					, "assets/textures/drone_diffuse.png"
+					, "assets/textures/drone_specular.png"
+					, "assets/textures/black.png"));
+			if (meshCounter == 2)
+				child->addMesh(std::make_shared<Mesh>(mesh.vertices, mesh.atts, mesh.indices
+					, "assets/textures/drone_diffuse.png"
+					, "assets/textures/drone_specular.png"
+					, "assets/textures/black.png"));
+			if (meshCounter == 3)
+				child->addMesh(std::make_shared<Mesh>(mesh.vertices, mesh.atts, mesh.indices
+					, "assets/textures/drone_diffuse.png"
+					, "assets/textures/drone_specular.png"
+					, "assets/textures/black.png"));
+			if (meshCounter == 4)
+				child->addMesh(std::make_shared<Mesh>(mesh.vertices, mesh.atts, mesh.indices
+					, "assets/textures/drone_diffuse.png"
+					, "assets/textures/drone_specular.png"
+					, "assets/textures/black.png"));
 
 
 			meshCounter++;
