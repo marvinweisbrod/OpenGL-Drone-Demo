@@ -54,6 +54,16 @@ float DroneAnimator::calculateNewCurrentAngle(float current /* [-1;+1] */, float
 {
 	float distanceCurrReq = std::fabs(current - required);
 	float maxThisFrame = perSecond * dt;
+	
+	// attempt at smoothing
+	// first figuring out how far the current angle is from the required one on a scale from 0 to 1, 1 being the farthest away possible
+	// then using the below formular to get a multiplier:
+	// arctan(x^2*25)*0.65
+	// I suggest you use a graphing tool to visualize it.
+	// for example: https://www.desmos.com/calculator
+	float relativeDistanceFromTarget = distanceCurrReq / 2.0f;
+	maxThisFrame *= std::atan(relativeDistanceFromTarget * relativeDistanceFromTarget * 25.0f) * 0.65f;
+
 	float actualChange = custom_min(distanceCurrReq, maxThisFrame);
 	float newCurrent = current - (current - required < 0 ? -1.0f : 1.0f) * actualChange;
 
