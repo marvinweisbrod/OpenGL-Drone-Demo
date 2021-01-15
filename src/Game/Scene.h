@@ -6,6 +6,8 @@
 #include <AssetManager.h>
 #include <vector>
 #include "Renderable.h"
+#include "DroneController.h"
+#include "DroneAnimator.h"
 
 class Scene
 {
@@ -32,21 +34,22 @@ private:
     GLuint vaoID, vboID, eboID;
 	GLuint vertexCount = 0;
 	float currentAspect;
-
+	std::shared_ptr<DroneController> droneController;
+	std::shared_ptr<DroneAnimator> droneAnimator;
 	std::vector<std::shared_ptr<Renderable>> renderables;
 
 	// Scene Objects
 	std::shared_ptr<Renderable> r_ground;
-	//std::shared_ptr<Renderable> r_bike;
 	std::shared_ptr<Renderable> r_drone;
 	std::shared_ptr<PointLight> pointLight;
 	std::shared_ptr<SpotLight> spotLight;
 	std::shared_ptr<Camera> followCamera;
 	std::shared_ptr<Camera> freeCamera;
 	glm::vec4 ambientLight;
-	bool currentCameraFree = true;
+	bool currentCameraFree = false;
 	std::shared_ptr<Renderable> addObject(std::string path, std::string texDiff, std::string texSpec, std::string texEmss, float uvScale = 1.0f, bool reverseWinding = false);
-	std::shared_ptr<Renderable> addBike(std::string path, bool reverseWinding = false);
-	std::shared_ptr<Renderable> addDrone(std::string path, bool reverseWinding = false);
+	std::shared_ptr<Renderable> addDrone(std::string path, std::shared_ptr<Renderable>& parent, bool reverseWinding = false);
+
+	
 };
 
