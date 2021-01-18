@@ -26,7 +26,6 @@ Transform::Transform() :
 	m_yaxis(0.0f, 1.0f, 0.0f),
 	m_zaxis(0.0f, 1.0f, 0.0f)
 {
-	std::cout << m_children.size() << "\n";
 }
 
 Transform::Transform(const glm::mat4& transformMatrix) :
@@ -203,7 +202,6 @@ Transform* Transform::getParent() {
 
 void Transform::addChild(Transform* child)
 {
-	std::cout << m_children.size() << "\n";
 	if(child)
 		m_children.insert(child);
 }

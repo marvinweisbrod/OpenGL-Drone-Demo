@@ -18,6 +18,10 @@ list(APPEND SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/src/PointLight.h")
 list(APPEND SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/src/PointLight.cpp")
 list(APPEND SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/src/Texture2D.h")
 list(APPEND SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/src/Texture2D.cpp")
+list(APPEND SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/src/DroneController.h")
+list(APPEND SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/src/DroneController.cpp")
+list(APPEND SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/src/DroneAnimator.h")
+list(APPEND SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/src/DroneAnimator.cpp")
 
 ## Framework/Assets
 list(APPEND SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/src/Framework/Assets/AssetManager.h")

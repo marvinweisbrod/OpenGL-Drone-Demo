@@ -51,11 +51,8 @@ void ShaderProgram::use()
 
 void ShaderProgram::bind(Camera& camera)
 {
-	auto test = camera.getViewMatrix();
-	//setUniform("viewMat", camera.getViewMatrix(), false);
-	setUniform("viewMat", test, false);
-	test = glm::inverse(test);
-	setUniform("viewMatInv", test, false);
+	setUniform("viewMat", camera.getViewMatrix(), false);
+	setUniform("viewMatInv", glm::inverse(camera.getViewMatrix()), false);
 	setUniform("projMat", camera.getProjectionMatrix(), false);
 }
 
