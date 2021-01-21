@@ -1,0 +1,3 @@
+the glyph grid is 32x16
+
+glyphs start with ascii 32 (SPACE)

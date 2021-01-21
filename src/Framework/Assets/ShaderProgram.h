@@ -57,6 +57,8 @@ public:
 	bool setUniform(const std::string& name, const glm::mat3& value, bool transpose);
 	bool setUniform(const std::string& name, const glm::mat4& value, bool transpose);
 
+	bool setUniform(const std::string& name, int* value, int len);
+
 private:
 	GLint getUniformLocation(const char* name)
 	{
@@ -65,6 +67,17 @@ private:
 		return glGetUniformLocation(this->prog, name); GLERR
 	}
 };
+
+inline bool ShaderProgram::setUniform(const std::string& name, int* value, int len)
+{
+	GLint loc = getUniformLocation(name.c_str());
+	if (loc == -1)
+		return false;
+	if (!isActive())
+		return false;
+	glUniform1iv(loc, len, value); GLERR
+		return true;
+}
 
 inline bool ShaderProgram::setUniform(const std::string& name, GLfloat value)
 {

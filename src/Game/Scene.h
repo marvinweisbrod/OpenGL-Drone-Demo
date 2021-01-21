@@ -8,6 +8,7 @@
 #include "Renderable.h"
 #include "DroneController.h"
 #include "DroneAnimator.h"
+#include "TextRenderer.h"
 
 class Scene
 {
@@ -30,7 +31,8 @@ public:
 private:
 	GameWindow* m_window;
 	AssetManager m_assets;
-    ShaderProgram* m_shader;
+    ShaderProgram* m_shaderMain;
+	ShaderProgram* m_shaderText;
     GLuint vaoID, vboID, eboID;
 	GLuint vertexCount = 0;
 	float currentAspect;
@@ -45,6 +47,7 @@ private:
 	std::shared_ptr<SpotLight> spotLight;
 	std::shared_ptr<Camera> followCamera;
 	std::shared_ptr<Camera> freeCamera;
+	std::shared_ptr<TextRenderer> textRenderer;
 	glm::vec4 ambientLight;
 	bool currentCameraFree = false;
 	std::shared_ptr<Renderable> addObject(std::string path, std::string texDiff, std::string texSpec, std::string texEmss, float uvScale = 1.0f, bool reverseWinding = false);
