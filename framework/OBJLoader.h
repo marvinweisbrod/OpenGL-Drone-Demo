@@ -10,6 +10,7 @@
 #include <cctype>
 #include <unordered_map>
 #include <CommonTypes.h>
+#include "Bounds.h"
 
 //------------------------------ istream string helper ----------------------------------------
 
@@ -76,7 +77,8 @@ public:
 		hasTangents(other.hasTangents),
 		vertices(other.vertices),
 		indices(other.indices),
-		atts(other.atts)
+		atts(other.atts),
+		bounds(other.bounds)
 	{}
 	OBJMesh(OBJMesh&& other) :
 		name(std::move(other.name)),
@@ -86,7 +88,8 @@ public:
 		hasTangents(other.hasTangents),
 		vertices(std::move(other.vertices)),
 		indices(std::move(other.indices)),
-		atts(std::move(other.atts))
+		atts(std::move(other.atts)),
+		bounds(other.bounds)
 	{}
 	~OBJMesh() {}
 
@@ -102,6 +105,7 @@ public:
 		this->vertices = other.vertices;
 		this->indices = other.indices;
 		this->atts = other.atts;
+		this->bounds = other.bounds;
 
 		return *this;
 	}
@@ -117,6 +121,7 @@ public:
 		this->vertices = std::move(other.vertices);
 		this->indices = std::move(other.indices);
 		this->atts = std::move(other.atts);
+		this->bounds = other.bounds;
 
 		return *this;
 	}
@@ -131,6 +136,7 @@ public:
 	std::vector<Vertex> vertices;
 	std::vector<Index> indices;
 	std::vector<VertexAttribute> atts;
+	Bounds bounds;
 };
 
 class OBJObject
@@ -139,11 +145,13 @@ public:
 	OBJObject() {}
 	OBJObject(const OBJObject& other) :
 		name(other.name),
-		meshes(other.meshes)
+		meshes(other.meshes),
+		bounds(other.bounds)
 	{}
 	OBJObject(OBJObject&& other) :
 		name(std::move(other.name)),
-		meshes(std::move(other.meshes))
+		meshes(std::move(other.meshes)),
+		bounds(other.bounds)
 	{}
 	~OBJObject() {}
 
@@ -154,6 +162,7 @@ public:
 
 		this->name = other.name;
 		this->meshes = other.meshes;
+		this->bounds = other.bounds;
 
 		return *this;
 	}
@@ -164,12 +173,14 @@ public:
 
 		this->name = std::move(other.name);
 		this->meshes = std::move(other.meshes);
+		this->bounds = other.bounds;
 
 		return *this;
 	}
 
 	std::string name;
 	std::vector<OBJMesh> meshes;
+	Bounds bounds;
 };
 
 class OBJResult
@@ -178,11 +189,13 @@ public:
 	OBJResult() {}
 	OBJResult(const OBJResult& other) :
 		objname(other.objname),
-		objects(other.objects)
+		objects(other.objects),
+		bounds(other.bounds)
 	{}
 	OBJResult(OBJResult&& other) :
 		objname(std::move(other.objname)),
-		objects(std::move(other.objects))
+		objects(std::move(other.objects)),
+		bounds(other.bounds)
 	{}
 	~OBJResult() {}
 
@@ -193,6 +206,7 @@ public:
 
 		this->objname = other.objname;
 		this->objects = other.objects;
+		this->bounds = other.bounds;
 
 		return *this;
 	}
@@ -203,12 +217,14 @@ public:
 
 		this->objname = std::move(other.objname);
 		this->objects = std::move(other.objects);
+		this->bounds = other.bounds;
 
 		return *this;
 	}
 
 	std::string objname;
 	std::vector<OBJObject> objects;
+	Bounds bounds;
 };
 
 class OBJLoader

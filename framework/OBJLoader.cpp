@@ -26,11 +26,15 @@ OBJResult OBJLoader::loadOBJ(const std::string & objpath, bool calcnormals, bool
 		{			
 			if (command == "o")
 			{
-				result.objects.push_back(parseObject(cache, stream, calcnormals, calctangents));
+				OBJObject object = parseObject(cache, stream, calcnormals, calctangents);
+				result.bounds.include(object.bounds);
+				result.objects.push_back(std::move(object));
 			}
 			else if (command == "v" || command == "vt" || command == "vn" || command == "g" || command == "f") //no object. parse whole obj file into one object
 			{
-				result.objects.push_back(parseObject(cache, stream, calcnormals, calctangents));
+				OBJObject object = parseObject(cache, stream, calcnormals, calctangents);
+				result.bounds.include(object.bounds);
+				result.objects.push_back(std::move(object));
 			}
 			else
 			{				
@@ -89,7 +93,11 @@ OBJObject OBJLoader::parseObject(DataCache& cache, std::ifstream & stream, bool 
 			//meshes, groups and faces
 			else if (command == "g" || command == "f") //grouped or ungrouped mesh
 			{
-				object.meshes.push_back(parseMesh(cache, stream, calcnormals, calctangents));
+				OBJMesh mesh = parseMesh(cache, stream, calcnormals, calctangents);
+				// Include the child bounds in the object bounds
+				object.bounds.include(mesh.bounds);
+				// Make sure the object is moved, not copied.
+				object.meshes.push_back(std::move(mesh));
 			}
 			//stop condition
 			else if (command == "o") //next object found
@@ -369,7 +377,11 @@ void OBJLoader::fillMesh(OBJMesh & mesh, DataCache & cache, std::vector<VertexDe
 			if (vdefs[i].p_defined)
 			{
 				if(vdefs[i].p_idx < static_cast<Index>(cache.positions.size()))
+				{
 					vert.position = cache.positions[vdefs[i].p_idx];
+					// Include the vertex in the bounds of the mesh.
+					mesh.bounds.include(vert.position);
+				}
 				else
 					throw OBJException("Missing position in object definition");
 			}

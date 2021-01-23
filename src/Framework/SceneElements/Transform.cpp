@@ -28,6 +28,17 @@ Transform::Transform() :
 {
 }
 
+Transform::Transform(const Transform& other)
+	: m_transformMatrix(other.m_transformMatrix)
+	, m_position(other.m_position)
+	, m_rotation(other.m_rotation)
+	, m_scale(other.m_scale)
+	, m_xaxis(other.m_xaxis)
+	, m_yaxis(other.m_yaxis)
+	, m_zaxis(other.m_zaxis)
+{
+}
+
 Transform::Transform(const glm::mat4& transformMatrix) :
 	m_position(transformMatrix[3]),
 	m_rotation(glm::quat_cast(transformMatrix)),
@@ -225,4 +236,16 @@ Transform::~Transform()
 	for (auto& child : m_children) {
 		child->setParent(m_parent);
 	}
+}
+
+glm::vec3 Transform::transformPosition(const glm::vec3& position)
+{
+	glm::vec4 transformed = getTransformMatrix() * glm::vec4(position, 1.0f);
+	return glm::vec3(transformed.x / transformed.w, transformed.y / transformed.w, transformed.z / transformed.w);
+}
+
+glm::vec3 Transform::transformDirection(const glm::vec3& direction)
+{
+	glm::vec3 transformed = getTransformMatrix() * glm::vec4(direction, 0.0f);
+	return glm::vec3(transformed.x, transformed.y, transformed.z);
 }

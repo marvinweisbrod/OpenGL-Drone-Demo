@@ -1,6 +1,6 @@
-prefix=C:/Program Files/Shaderprogramming
+prefix=C:/Program Files (x86)/Shaderprogramming
 exec_prefix=${prefix}
-libdir=C:/Program Files/Shaderprogramming/lib
+libdir=C:/Program Files (x86)/Shaderprogramming/lib
 includedir=${prefix}/include
 
 Name: glew

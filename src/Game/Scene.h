@@ -9,6 +9,8 @@
 #include "DroneController.h"
 #include "DroneAnimator.h"
 
+class CollectibleManager;
+
 class Scene
 {
 public:
@@ -28,6 +30,11 @@ public:
 	void onFrameBufferResize(int width, int height);
 
 private:
+	std::shared_ptr<Renderable> instantiateCake(const glm::vec3& position, const glm::quat& rotation = glm::quat(1.0f, 0.0f, 0.0f, 0.0f),
+		const glm::vec3& scale = glm::vec3(1.0f, 1.0f, 1.0f));
+	std::shared_ptr<Renderable> cloneRenderable(Renderable* renderable);
+
+private:
 	GameWindow* m_window;
 	AssetManager m_assets;
     ShaderProgram* m_shader;
@@ -36,6 +43,7 @@ private:
 	float currentAspect;
 	std::shared_ptr<DroneController> droneController;
 	std::shared_ptr<DroneAnimator> droneAnimator;
+	std::shared_ptr<CollectibleManager> collectibleManager;
 	std::vector<std::shared_ptr<Renderable>> renderables;
 
 	// Scene Objects
@@ -45,11 +53,10 @@ private:
 	std::shared_ptr<SpotLight> spotLight;
 	std::shared_ptr<Camera> followCamera;
 	std::shared_ptr<Camera> freeCamera;
+	std::shared_ptr<Renderable> r_cake;
 	glm::vec4 ambientLight;
 	bool currentCameraFree = false;
 	std::shared_ptr<Renderable> addObject(std::string path, std::string texDiff, std::string texSpec, std::string texEmss, float uvScale = 1.0f, bool reverseWinding = false);
 	std::shared_ptr<Renderable> addDrone(std::string path, std::shared_ptr<Renderable>& parent, bool reverseWinding = false);
-
-	
 };
 

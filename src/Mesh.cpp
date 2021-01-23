@@ -1,8 +1,9 @@
 #include "Mesh.h"
 #include <iostream>
 
-Mesh::Mesh(std::vector<Vertex>& vertices, std::vector<VertexAttribute>& vertexAttributes, std::vector<Index>& indices, std::string texDiff, std::string texSpec, std::string texEmss, float uvScale , float shine)
-	: m_texDiff(texDiff, true)
+Mesh::Mesh(std::vector<Vertex>& vertices, std::vector<VertexAttribute>& vertexAttributes, std::vector<Index>& indices, std::string texDiff, std::string texSpec, std::string texEmss, const Bounds& bounds, float uvScale , float shine)
+	: bounds(bounds)
+	, m_texDiff(texDiff, true)
 	, m_texSpec(texSpec, true)
 	, m_texEmss(texEmss, true)
 	, m_shine(shine)

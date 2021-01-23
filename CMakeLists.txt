@@ -22,6 +22,10 @@ list(APPEND SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/src/DroneController.h")
 list(APPEND SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/src/DroneController.cpp")
 list(APPEND SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/src/DroneAnimator.h")
 list(APPEND SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/src/DroneAnimator.cpp")
+list(APPEND SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/src/CollectibleManager.h")
+list(APPEND SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/src/CollectibleManager.cpp")
+list(APPEND SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/src/Bounds.h")
+list(APPEND SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/src/Bounds.cpp")
 
 ## Framework/Assets
 list(APPEND SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/src/Framework/Assets/AssetManager.h")

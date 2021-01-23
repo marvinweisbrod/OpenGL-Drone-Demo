@@ -28,7 +28,7 @@ protected:
 public:
 	Transform();
 	~Transform();
-	Transform(const Transform& other) = default;
+	Transform(const Transform& other);
 	Transform& operator=(const Transform& other) = default;
 	Transform(Transform&& other) = default;
 	Transform& operator=(Transform&& other) = default;
@@ -37,6 +37,7 @@ public:
 
 	void setParent(Transform* parent);
 	Transform* getParent();
+	const std::set<Transform*>& getChildren();
 
 	const glm::vec3& getPosition();
 	const glm::quat& getRotation();
@@ -67,5 +68,14 @@ public:
 	void lookinto(const glm::vec3& direction, const glm::vec3& up = glm::vec3(0.0f,1.0f,0.0f));
 	void lookat(const glm::vec3& point, const glm::vec3& up = glm::vec3(0.0f, 1.0f, 0.0f));
 	glm::mat4 getInverseMatrix();
+
+	glm::vec3 transformPosition(const glm::vec3& position);
+	glm::vec3 transformDirection(const glm::vec3& direction);
 };
+
+inline const std::set<Transform*>& Transform::getChildren()
+{
+	return m_children;
+}
+
 #endif

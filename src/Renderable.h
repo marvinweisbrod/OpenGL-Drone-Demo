@@ -15,6 +15,28 @@ public:
 	void render(ShaderProgram& shader);
 
 	void addMesh(std::shared_ptr<Mesh>& mesh);
+
+	void setBounds(const Bounds& b)
+	{
+		bounds = b;
+	}
+
+	const Bounds& getBounds() const
+	{
+		return bounds;
+	}
+
+	Bounds getTransformedBounds();
+	void setActive(bool active = true);
+	bool isActive() const;
+
 private:
 	std::vector<std::shared_ptr<Mesh>> m_meshes;
+	Bounds bounds;
+	bool active = true;
 };
+
+inline bool Renderable::isActive() const
+{
+	return active;
+}

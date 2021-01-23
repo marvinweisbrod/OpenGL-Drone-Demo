@@ -4,6 +4,7 @@
 #include <vector>
 #include <memory>
 #include <exception>
+#include "CollectibleManager.h"
 
 Scene::Scene(GameWindow * window) :
 	m_window(window)
@@ -35,9 +36,11 @@ bool Scene::init()
 			renderables.push_back(r_drone);
 			auto model = addDrone("assets/models/Drone_fixed2.obj", r_drone);
 			model->scale(glm::vec3(0.005f, 0.005f, 0.005f));
+			Bounds bounds = model->getTransformedBounds();
 			r_drone->translateLocal(glm::vec3(0.0f, 0.00f, 0.5f));
 			//model->rotate(glm::angleAxis(glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f)));
 			model->setParent(r_drone.get());
+			r_drone->setBounds(bounds);
 		}
 		{// GROUND
 			auto ground = addObject("assets/models/ground.obj"
@@ -47,6 +50,13 @@ bool Scene::init()
 			r_ground = ground;
 			ground->scale(glm::vec3(0.5f, 0.01f, 0.5f));
 			ground->translate(glm::vec3(0.0f, 0.0f, 0.0f));
+		}
+		{
+			// Cake
+			r_cake = addObject("assets/models/cake.obj", "assets/textures/cake.png", "", "", 1.0f, false);
+			r_cake->setActive(false);
+			r_cake->scale(glm::vec3(0.025f, 0.025f, 0.025f));
+			r_cake->rotate(glm::angleAxis(glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f)));
 		}
 		{// CAM FOLLOW
 			followCamera = std::make_shared<Camera>();
@@ -69,6 +79,8 @@ bool Scene::init()
 			spotLight->setParent(r_drone.get());
 		}
 
+		collectibleManager = std::make_shared<CollectibleManager>(r_drone);
+		std::shared_ptr<Renderable> cake = instantiateCake(glm::vec3(0.0f, 0.0f, 5.0f));
 
 		//initial opengl state
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
@@ -100,7 +112,6 @@ void Scene::render(float dt)
 	for(auto& renderable: renderables){
 		renderable->render(*m_shader);
 	}
-
 }
 
 void Scene::update(float dt)
@@ -133,6 +144,8 @@ void Scene::update(float dt)
 		if (m_window->getInput().getKeyState(Key::K2) == KeyState::Pressed)
 			currentCameraFree = true;
 	}
+
+	collectibleManager->update(dt);
 }
 
 GameWindow * Scene::getWindow()
@@ -184,6 +197,7 @@ std::shared_ptr<Renderable> Scene::addObject(std::string path, std::string texDi
 	auto base = std::make_shared<Renderable>();
 	renderables.push_back(base);
 
+	Bounds baseBounds = result.bounds;
 	for (auto& object : result.objects) {
 		auto child = std::make_shared<Renderable>();
 		renderables.push_back(child);
@@ -191,9 +205,13 @@ std::shared_ptr<Renderable> Scene::addObject(std::string path, std::string texDi
 		for (auto& mesh : object.meshes) {
 			if(reverseWinding)
 				OBJLoader::reverseWinding(mesh);
-			child->addMesh(std::make_shared<Mesh>(mesh.vertices, mesh.atts, mesh.indices, texDiff, texSpec, texEmss, uvScale));
+			child->addMesh(std::make_shared<Mesh>(mesh.vertices, mesh.atts, mesh.indices, texDiff, texSpec, texEmss, mesh.bounds, uvScale));
 		}
+		//baseBounds.include(child->getBounds());
 	}
+
+	base->setBounds(baseBounds);
+
 	return base;
 }
 
@@ -225,6 +243,7 @@ std::shared_ptr<Renderable> Scene::addDrone(std::string path, std::shared_ptr<Re
 
 	float offset = 23.0f;
 
+	Bounds baseBounds = result.bounds;
 	for (auto& object : result.objects) {
 		int meshCounter = 0;
 		for (auto& mesh : object.meshes) {
@@ -234,7 +253,8 @@ std::shared_ptr<Renderable> Scene::addDrone(std::string path, std::shared_ptr<Re
 				collection->addMesh(std::make_shared<Mesh>(mesh.vertices, mesh.atts, mesh.indices
 					, "assets/textures/drone_diffuse.png"
 					, "assets/textures/drone_specular.png"
-					, "assets/textures/black.png"));
+					, "assets/textures/black.png"
+					, mesh.bounds));
 			if (meshCounter == 1) { // Front Left
 				auto temp = std::make_shared<Renderable>();
 				renderables.push_back(temp);
@@ -244,7 +264,9 @@ std::shared_ptr<Renderable> Scene::addDrone(std::string path, std::shared_ptr<Re
 				temp->addMesh(std::make_shared<Mesh>(mesh.vertices, mesh.atts, mesh.indices
 					, "assets/textures/drone_diffuse.png"
 					, "assets/textures/drone_specular.png"
-					, "assets/textures/black.png"));
+					, "assets/textures/black.png"
+					, mesh.bounds));
+				//baseBounds.include(temp->getTransformedBounds());
 			}
 			if (meshCounter == 2) { // Back Left
 				auto temp = std::make_shared<Renderable>();
@@ -255,7 +277,9 @@ std::shared_ptr<Renderable> Scene::addDrone(std::string path, std::shared_ptr<Re
 				temp->addMesh(std::make_shared<Mesh>(mesh.vertices, mesh.atts, mesh.indices
 					, "assets/textures/drone_diffuse.png"
 					, "assets/textures/drone_specular.png"
-					, "assets/textures/black.png"));
+					, "assets/textures/black.png"
+					, mesh.bounds));
+				//baseBounds.include(temp->getTransformedBounds());
 			}
 			if (meshCounter == 3) { // Back Right
 				auto temp = std::make_shared<Renderable>();
@@ -266,7 +290,9 @@ std::shared_ptr<Renderable> Scene::addDrone(std::string path, std::shared_ptr<Re
 				temp->addMesh(std::make_shared<Mesh>(mesh.vertices, mesh.atts, mesh.indices
 					, "assets/textures/drone_diffuse.png"
 					, "assets/textures/drone_specular.png"
-					, "assets/textures/black.png"));
+					, "assets/textures/black.png"
+					, mesh.bounds));
+				//baseBounds.include(temp->getTransformedBounds());
 			}
 			if (meshCounter == 4) { // Front Right
 				auto temp = std::make_shared<Renderable>();
@@ -277,13 +303,22 @@ std::shared_ptr<Renderable> Scene::addDrone(std::string path, std::shared_ptr<Re
 				temp->addMesh(std::make_shared<Mesh>(mesh.vertices, mesh.atts, mesh.indices
 					, "assets/textures/drone_diffuse.png"
 					, "assets/textures/drone_specular.png"
-					, "assets/textures/black.png"));
+					, "assets/textures/black.png"
+					, mesh.bounds));
+				//baseBounds.include(temp->getTransformedBounds());
 			}
 			
 
 			meshCounter++;
 		}
 	}
+
+	//baseBounds.include(collection->getTransformedBounds());
+	//baseBounds.include(rotor0->getTransformedBounds());
+	//baseBounds.include(rotor1->getTransformedBounds());
+	//baseBounds.include(rotor2->getTransformedBounds());
+	//baseBounds.include(rotor3->getTransformedBounds());
+	base->setBounds(baseBounds);
 
 	droneController = std::make_shared<DroneController>(std::static_pointer_cast<Transform>(parent), m_window);
 	droneAnimator = std::make_shared<DroneAnimator>(droneController
@@ -295,4 +330,29 @@ std::shared_ptr<Renderable> Scene::addDrone(std::string path, std::shared_ptr<Re
 		);
 
 	return base;
+}
+
+std::shared_ptr<Renderable> Scene::instantiateCake(const glm::vec3& position, const glm::quat& rotation, const glm::vec3& scale)
+{
+	std::shared_ptr<Renderable> cake = cloneRenderable(r_cake.get());
+	cake->translate(position);
+	cake->rotate(rotation);
+	cake->scale(scale);
+	cake->setActive(true);
+	collectibleManager->add(cake);
+	return cake;
+}
+
+std::shared_ptr<Renderable> Scene::cloneRenderable(Renderable* renderable)
+{
+	std::shared_ptr<Renderable> clone = std::make_shared<Renderable>(*renderable);
+	renderables.push_back(clone);
+	for(Transform* childTransform : renderable->getChildren())
+	{
+		std::shared_ptr<Renderable> child = cloneRenderable(static_cast<Renderable*>(childTransform));
+		child->setParent(clone.get());
+		renderables.push_back(child);
+	}
+
+	return clone;
 }
