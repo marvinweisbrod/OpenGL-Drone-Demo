@@ -12,6 +12,7 @@ class CollectibleManager
     struct Collectible
     {
         std::shared_ptr<Renderable> renderable;
+        float time;
     };
 
 public:

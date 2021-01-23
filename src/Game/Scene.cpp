@@ -80,7 +80,9 @@ bool Scene::init()
 		}
 
 		collectibleManager = std::make_shared<CollectibleManager>(r_drone);
-		std::shared_ptr<Renderable> cake = instantiateCake(glm::vec3(0.0f, 0.0f, 5.0f));
+		instantiateCake(glm::vec3(0.0f, 0.0f, 5.0f));
+		instantiateCake(glm::vec3(3.0f, 1.0f, -2.0f));
+		instantiateCake(glm::vec3(-1.0f, 0.5f, 1.0f));
 
 		//initial opengl state
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
