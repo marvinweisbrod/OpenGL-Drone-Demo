@@ -8,7 +8,7 @@ CollectibleManager::CollectibleManager(const std::shared_ptr<Renderable>& drone)
 
 void CollectibleManager::add(const std::shared_ptr<Renderable>& cake)
 {
-    Collectible collectible{ cake, ((float) rand() / RAND_MAX) * 2.0f };
+    Collectible collectible{ cake, 0.0f };
     collectibles.push_back(std::move(collectible));
 }
 
