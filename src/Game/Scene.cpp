@@ -22,15 +22,29 @@ bool Scene::init()
 	try
 	{
 		//Load shader
-		m_assets.addShaderProgram("shader", AssetManager::createShaderProgram("assets/shaders/vertex.glsl", "assets/shaders/fragment.glsl"));
-		m_shader = m_assets.getShaderProgram("shader");
+		m_assets.addShaderProgram("main", AssetManager::createShaderProgram("assets/shaders/vertex.glsl", "assets/shaders/fragment.glsl"));
+		m_shaderMain = m_assets.getShaderProgram("main");
+		m_assets.addShaderProgram("text", AssetManager::createShaderProgram("assets/shaders/textVert.glsl", "assets/shaders/textFrag.glsl"));
 
 		glEnable(GL_CULL_FACE);
 		glFrontFace(GL_CCW);
 		glCullFace(GL_BACK);
 		glEnable(GL_DEPTH_TEST);
 		glDepthFunc(GL_LESS);
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
+
+		{// Text Renderer
+			textRenderer = std::make_shared<TextRenderer>(m_assets.getShaderProgram("text"));
+			textRenderer->setAspect(currentAspect);
+
+			// hier jetzt testweise ein text hinzugefügt. der CollectibleManager kann sich selbst nen text erstellen und ihn immer wieder editieren.
+			auto result = textRenderer->createTextEntry();
+			result.second->setText("Tomate");
+			result.second->setPosition(glm::vec2(-0.99f, -1.0f));
+			result.second->setSize(0.2f);
+		}
 		{// Drone
 			r_drone = std::make_shared<Renderable>();
 			renderables.push_back(r_drone);
@@ -105,15 +119,21 @@ void Scene::shutdown()
 void Scene::render(float dt)
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	m_shader->use();
-	m_shader->bind(currentCameraFree ? *freeCamera : *followCamera);
-	m_shader->bind(*pointLight);
-	m_shader->bind(*spotLight);
-	m_shader->setUniform("ambient", ambientLight);
+	m_shaderMain->use();
+	m_shaderMain->bind(currentCameraFree ? *freeCamera : *followCamera);
+	m_shaderMain->bind(*pointLight);
+	m_shaderMain->bind(*spotLight);
+	m_shaderMain->setUniform("ambient", ambientLight);
 
 	for(auto& renderable: renderables){
-		renderable->render(*m_shader);
+		renderable->render(*m_shaderMain);
 	}
+
+	// Render text without depth test
+	glDisable(GL_DEPTH_TEST);
+	textRenderer->render();
+	glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_LESS);
 }
 
 void Scene::update(float dt)
@@ -191,6 +211,7 @@ void Scene::onFrameBufferResize(int width, int height)
 	currentAspect = static_cast<float>(m_window->getFrameBufferWidth()) / static_cast<float>(m_window->getFrameBufferHeight());
 	if(freeCamera)
 		freeCamera->setPerspective(glm::radians(60.0f), currentAspect, 0.01f, 100.0f);
+	textRenderer->setAspect(currentAspect);
 }
 
 std::shared_ptr<Renderable> Scene::addObject(std::string path, std::string texDiff, std::string texSpec, std::string texEmss, float uvScale, bool reverseWinding)
