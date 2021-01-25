@@ -6,6 +6,7 @@
 #include "Transform.h"
 
 class Renderable;
+class TextRenderer;
 
 class CollectibleManager
 {
@@ -16,12 +17,15 @@ class CollectibleManager
     };
 
 public:
-    CollectibleManager(const std::shared_ptr<Renderable>& drone);
+    CollectibleManager(const std::shared_ptr<Renderable>& drone, const std::shared_ptr<TextRenderer>& textRenderer);
 
     void add(const std::shared_ptr<Renderable>& cake);
     void update(float dt);
 
 private:
-    std::vector<Collectible>    collectibles;
-    std::shared_ptr<Renderable> drone;
+    std::vector<Collectible>        collectibles;
+    std::shared_ptr<Renderable>     drone;
+    std::shared_ptr<TextRenderer>   textRenderer;
+    size_t                          totalCollectibleCount = 0;
+    unsigned int                    textId = 0;
 };

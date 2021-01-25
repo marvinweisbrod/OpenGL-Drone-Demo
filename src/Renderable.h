@@ -26,6 +26,10 @@ public:
 		return bounds;
 	}
 
+	/// <summary>
+	/// Get the bounds of this renderable in world space.
+	/// </summary>
+	/// <returns></returns>
 	Bounds getTransformedBounds();
 	void setActive(bool active = true);
 	bool isActive() const;

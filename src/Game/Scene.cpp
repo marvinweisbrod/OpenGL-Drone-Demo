@@ -71,6 +71,7 @@ bool Scene::init()
 			r_cake->setActive(false);
 			r_cake->scale(glm::vec3(0.025f, 0.025f, 0.025f));
 			r_cake->rotate(glm::angleAxis(glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f)));
+			r_cake->translate(glm::vec3(0.0f, 0.03f, 0.0f));
 		}
 		{// CAM FOLLOW
 			followCamera = std::make_shared<Camera>();
@@ -93,10 +94,10 @@ bool Scene::init()
 			spotLight->setParent(r_drone.get());
 		}
 
-		collectibleManager = std::make_shared<CollectibleManager>(r_drone);
+		collectibleManager = std::make_shared<CollectibleManager>(r_drone, textRenderer);
 		instantiateCake(glm::vec3(0.0f, 0.0f, 5.0f));
 		instantiateCake(glm::vec3(3.0f, 1.0f, -2.0f));
-		instantiateCake(glm::vec3(-1.0f, 0.0f, 1.0f));
+		instantiateCake(glm::vec3(-2.0f, 0.0f, 1.0f));
 
 		//initial opengl state
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
