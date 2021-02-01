@@ -9,6 +9,7 @@
 #include "DroneController.h"
 #include "DroneAnimator.h"
 #include "TextRenderer.h"
+#include "SkyboxRenderer.h"
 
 class CollectibleManager;
 class DirectionalLight;
@@ -59,6 +60,7 @@ private:
 	std::shared_ptr<Camera> freeCamera;
 	std::shared_ptr<Renderable> r_cake;
 	std::shared_ptr<TextRenderer> textRenderer;
+	std::shared_ptr<SkyboxRenderer> skyboxRenderer;
 	std::vector<std::shared_ptr<Renderable>> buildings;
 	glm::vec4 ambientLight;
 	bool currentCameraFree = false;

@@ -26,30 +26,15 @@ bool Scene::init()
 		m_assets.addShaderProgram("main", AssetManager::createShaderProgram("assets/shaders/vertex.glsl", "assets/shaders/fragment.glsl"));
 		m_shaderMain = m_assets.getShaderProgram("main");
 		m_assets.addShaderProgram("text", AssetManager::createShaderProgram("assets/shaders/textVert.glsl", "assets/shaders/textFrag.glsl"));
+		m_assets.addShaderProgram("skybox", AssetManager::createShaderProgram("assets/shaders/skyboxVert.glsl", "assets/shaders/skyboxFrag.glsl"));
 
 		glEnable(GL_CULL_FACE);
 		glFrontFace(GL_CCW);
 		glCullFace(GL_BACK);
 		glEnable(GL_DEPTH_TEST);
-		glDepthFunc(GL_LESS);
+		glDepthFunc(GL_LEQUAL);
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-		//{ // version 1
-		//	float a = 0.4f;
-		//	int a_int = *((int*)&a);
-		//	std::cout << "1: float: " << a << " int: " << a_int << "\n";
-		//}
-
-		char name[10] = { 'L','e','s','s','o','n','s','\0' };
-		std::cout << *(name + 1) << "\n";
-
-		//{ // version 2
-		//	float a = 0.4f;
-		//	int a_int = ((int)a);
-		//	std::cout << "2: float: " << a << " int: " << a_int << "\n";
-		//}
-		//
 
 		{// Text Renderer
 			textRenderer = std::make_shared<TextRenderer>(m_assets.getShaderProgram("text"));
@@ -62,6 +47,18 @@ bool Scene::init()
 			//result.second->setSize(0.3f);
 			//result.second->setCentered(true);
 		}
+		{
+			std::vector<std::string> faces
+			{
+				"assets/textures/skybox2/right.jpg",
+				"assets/textures/skybox2/left.jpg",
+				"assets/textures/skybox2/top.jpg",
+				"assets/textures/skybox2/bottom.jpg",
+				"assets/textures/skybox2/front.jpg",
+				"assets/textures/skybox2/back.jpg"
+			};
+			skyboxRenderer = std::make_shared<SkyboxRenderer>(m_assets.getShaderProgram("skybox"), &faces);
+		}
 		std::shared_ptr<Renderable> drone_body_transform;
 		{// Drone
 			r_drone = std::make_shared<Renderable>();
@@ -70,7 +67,6 @@ bool Scene::init()
 			model->scale(glm::vec3(0.005f, 0.005f, 0.005f));
 			Bounds bounds = model->getTransformedBounds();
 			r_drone->translateLocal(glm::vec3(0.0f, 0.00f, 0.5f));
-			//model->rotate(glm::angleAxis(glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f)));
 			model->setParent(r_drone.get());
 			r_drone->setBounds(bounds);
 		}
@@ -181,12 +177,14 @@ void Scene::render(float dt)
 	for(auto& renderable: renderables){
 		renderable->render(*m_shaderMain);
 	}
+	// render skybox after all other objects so we dont need to calculate hidden fragments
+	skyboxRenderer->render(currentCameraFree ? *freeCamera : *followCamera);
 
 	// Render text without depth test
 	glDisable(GL_DEPTH_TEST);
 	textRenderer->render();
 	glEnable(GL_DEPTH_TEST);
-	glDepthFunc(GL_LESS);
+	glDepthFunc(GL_LEQUAL);
 }
 
 void Scene::update(float dt)

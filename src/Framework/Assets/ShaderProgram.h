@@ -19,7 +19,7 @@ public:
 	ShaderProgram& operator=(ShaderProgram&& other);
 	~ShaderProgram();
 	void use();
-	void bind(Camera& camera);
+	void bind(Camera& camera, bool excludeViewTranslation = false);
 	void bind(PointLight& plight);
 	void bind(SpotLight& slight);
 	void bind(DirectionalLight& dlight);

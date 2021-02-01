@@ -30,11 +30,15 @@ list(APPEND SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/src/Bounds.h")
 list(APPEND SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/src/Bounds.cpp")
 list(APPEND SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/src/TextRenderer.h")
 list(APPEND SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/src/TextRenderer.cpp")
+list(APPEND SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/src/SkyboxRenderer.h")
+list(APPEND SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/src/SkyboxRenderer.cpp")
 
 list(APPEND SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/assets/shaders/fragment.glsl")
 list(APPEND SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/assets/shaders/vertex.glsl")
 list(APPEND SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/assets/shaders/textFrag.glsl")
 list(APPEND SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/assets/shaders/textVert.glsl")
+list(APPEND SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/assets/shaders/skyboxFrag.glsl")
+list(APPEND SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/assets/shaders/skyboxVert.glsl")
 
 ## Framework/Assets
 list(APPEND SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/src/Framework/Assets/AssetManager.h")

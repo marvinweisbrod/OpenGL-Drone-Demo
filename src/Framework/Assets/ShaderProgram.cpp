@@ -49,10 +49,18 @@ void ShaderProgram::use()
 			glUseProgram(prog); GLERR
 }
 
-void ShaderProgram::bind(Camera& camera)
+void ShaderProgram::bind(Camera& camera, bool excludeViewTranslation)
 {
-	setUniform("viewMat", camera.getViewMatrix(), false);
-	setUniform("viewMatInv", glm::inverse(camera.getViewMatrix()), false);
+	if (excludeViewTranslation) {
+		auto test = glm::mat4(glm::mat3(camera.getViewMatrix()));
+		setUniform("viewMat", test, false);
+		setUniform("viewMatInv", glm::mat4(glm::mat3(glm::inverse(camera.getViewMatrix()))), false);
+	}
+	else {
+		setUniform("viewMat", camera.getViewMatrix(), false);
+		setUniform("viewMatInv", glm::inverse(camera.getViewMatrix()), false);
+	}
+	
 	setUniform("projMat", camera.getProjectionMatrix(), false);
 }
 

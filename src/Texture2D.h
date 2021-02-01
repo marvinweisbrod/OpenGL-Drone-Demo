@@ -7,10 +7,12 @@
 #include <glerror.h>
 #include "ShaderProgram.h"
 #include <string>
+#include <vector>
 
 class Texture2D {
 public:
     Texture2D(const std::string & path, bool genMipMaps, GLint wrapping = GL_REPEAT, GLint filtering = GL_LINEAR);
+    Texture2D(const std::vector<std::string>& faces);
     GLuint getTexId() { return texid; };
 
     inline GLint maxTextureUnits()
