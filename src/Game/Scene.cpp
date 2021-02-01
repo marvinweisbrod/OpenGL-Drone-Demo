@@ -34,6 +34,21 @@ bool Scene::init()
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
+		//{ // version 1
+		//	float a = 0.4f;
+		//	int a_int = *((int*)&a);
+		//	std::cout << "1: float: " << a << " int: " << a_int << "\n";
+		//}
+
+		char name[10] = { 'L','e','s','s','o','n','s','\0' };
+		std::cout << *(name + 1) << "\n";
+
+		//{ // version 2
+		//	float a = 0.4f;
+		//	int a_int = ((int)a);
+		//	std::cout << "2: float: " << a << " int: " << a_int << "\n";
+		//}
+		//
 
 		{// Text Renderer
 			textRenderer = std::make_shared<TextRenderer>(m_assets.getShaderProgram("text"));
@@ -45,10 +60,11 @@ bool Scene::init()
 			result.second->setPosition(glm::vec2(-0.99f, -1.0f));
 			result.second->setSize(0.2f);
 		}
+		std::shared_ptr<Renderable> drone_body_transform;
 		{// Drone
 			r_drone = std::make_shared<Renderable>();
 			renderables.push_back(r_drone);
-			auto model = addDrone("assets/models/Drone_fixed2.obj", r_drone);
+			auto model = addDrone("assets/models/Drone_fixed2.obj", r_drone, false, drone_body_transform);
 			model->scale(glm::vec3(0.005f, 0.005f, 0.005f));
 			Bounds bounds = model->getTransformedBounds();
 			r_drone->translateLocal(glm::vec3(0.0f, 0.00f, 0.5f));
@@ -90,8 +106,8 @@ bool Scene::init()
 		{// LIGHTS
 			ambientLight = glm::vec4(0.1, 0.1, 0.1, 1.0);
 			pointLight = std::make_shared<PointLight>(glm::vec3(0.0f,2.0f,0.0f), glm::vec4(0.8f,0.8f,1.0f,1.0f));
-			spotLight = std::make_shared<SpotLight>(glm::vec3(0.0f, 0.0f, 0.2f), glm::vec3(0.0f,0.0f,1.0f), glm::radians(30.0f), glm::radians(60.0f), glm::vec4(1.0f, 0.9f, 0.7f, 1.0f));
-			spotLight->setParent(r_drone.get());
+			spotLight = std::make_shared<SpotLight>(glm::vec3(0.0f, 0.0f, 35.0f), glm::vec3(0.0f,0.0f,1.0f), glm::radians(30.0f), glm::radians(40.0f), glm::vec4(1.0f, 0.9f, 0.7f, 1.0f));
+			spotLight->setParent(drone_body_transform.get());
 		}
 
 		collectibleManager = std::make_shared<CollectibleManager>(r_drone, textRenderer);
@@ -139,10 +155,7 @@ void Scene::render(float dt)
 
 void Scene::update(float dt)
 {
-	// Drone Movement
-	droneController->update(dt);
-	droneAnimator->update(dt);
-
+	
 	// free cam movement
 	if (currentCameraFree) { 
 		glm::vec3 translation(0.0f, 0.0f, 0.0f);
@@ -159,7 +172,12 @@ void Scene::update(float dt)
 		if (m_window->getInput().getKeyState(Key::LeftCtrl) == KeyState::Pressed)
 			translation.y += -1.0f * dt;
 		freeCamera->translateLocal(translation);
-	} 
+	}
+	else { // Drone Movement
+		droneController->update(dt);
+	}
+
+	droneAnimator->update(dt);
 
 	{ // cam switching
 		if (m_window->getInput().getKeyState(Key::K1) == KeyState::Pressed)
@@ -239,7 +257,7 @@ std::shared_ptr<Renderable> Scene::addObject(std::string path, std::string texDi
 	return base;
 }
 
-std::shared_ptr<Renderable> Scene::addDrone(std::string path, std::shared_ptr<Renderable>& parent, bool reverseWinding)
+std::shared_ptr<Renderable> Scene::addDrone(std::string path, std::shared_ptr<Renderable>& parent, bool reverseWinding, std::shared_ptr<Renderable>& out_body)
 {
 	auto result = OBJLoader::loadOBJ(path, false, false);
 	auto base = std::make_shared<Renderable>();
@@ -247,6 +265,7 @@ std::shared_ptr<Renderable> Scene::addDrone(std::string path, std::shared_ptr<Re
 
 	auto collection = std::make_shared<Renderable>();
 	collection->setParent(base.get());
+	out_body = collection;
 	auto rotor0 = std::make_shared<Renderable>();
 	auto rotor1 = std::make_shared<Renderable>();
 	auto rotor2 = std::make_shared<Renderable>();
@@ -277,7 +296,7 @@ std::shared_ptr<Renderable> Scene::addDrone(std::string path, std::shared_ptr<Re
 				collection->addMesh(std::make_shared<Mesh>(mesh.vertices, mesh.atts, mesh.indices
 					, "assets/textures/drone_diffuse.png"
 					, "assets/textures/drone_specular.png"
-					, "assets/textures/black.png"
+					, "assets/textures/drone_emissive.png"
 					, mesh.bounds));
 			if (meshCounter == 1) { // Front Left
 				auto temp = std::make_shared<Renderable>();

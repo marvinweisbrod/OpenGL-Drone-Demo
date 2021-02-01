@@ -1,6 +1,7 @@
 #include "CollectibleManager.h"
 #include "Renderable.h"
 #include "TextRenderer.h"
+#include <algorithm>
 
 CollectibleManager::CollectibleManager(const std::shared_ptr<Renderable>& drone, const std::shared_ptr<TextRenderer>& textRenderer)
     : drone(drone), textRenderer(textRenderer)
