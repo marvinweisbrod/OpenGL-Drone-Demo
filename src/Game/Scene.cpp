@@ -5,6 +5,7 @@
 #include <memory>
 #include <exception>
 #include "CollectibleManager.h"
+#include "DirectionalLight.h"
 
 Scene::Scene(GameWindow * window) :
 	m_window(window)
@@ -106,8 +107,10 @@ bool Scene::init()
 		{// LIGHTS
 			ambientLight = glm::vec4(0.1, 0.1, 0.1, 1.0);
 			pointLight = std::make_shared<PointLight>(glm::vec3(0.0f,2.0f,0.0f), glm::vec4(0.8f,0.8f,1.0f,1.0f));
-			spotLight = std::make_shared<SpotLight>(glm::vec3(0.0f, 0.0f, 35.0f), glm::vec3(0.0f,0.0f,1.0f), glm::radians(30.0f), glm::radians(40.0f), glm::vec4(1.0f, 0.9f, 0.7f, 1.0f));
+			spotLight = std::make_shared<SpotLight>(glm::vec3(0.0f, 0.0f, 34.0f), glm::vec3(0.0f,0.0f,1.0f), glm::radians(20.0f), glm::radians(40.0f), 
+				glm::vec4(1.0f, 0.9f, 0.7f, 1.0f), glm::vec3(0.0f, 0.02f, 0.2f));
 			spotLight->setParent(drone_body_transform.get());
+			directionalLight = std::make_shared<DirectionalLight>(glm::vec3(1.0f, -1.0f, 1.0f), glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
 		}
 
 		collectibleManager = std::make_shared<CollectibleManager>(r_drone, textRenderer);
@@ -140,6 +143,7 @@ void Scene::render(float dt)
 	m_shaderMain->bind(currentCameraFree ? *freeCamera : *followCamera);
 	m_shaderMain->bind(*pointLight);
 	m_shaderMain->bind(*spotLight);
+	m_shaderMain->bind(*directionalLight);
 	m_shaderMain->setUniform("ambient", ambientLight);
 
 	for(auto& renderable: renderables){
