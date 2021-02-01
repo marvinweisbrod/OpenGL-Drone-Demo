@@ -17,17 +17,23 @@ public:
 		void setColor(glm::vec4 c) { color = c; };
 		void setPosition(glm::vec2 p) { position = p; };
 		void setSize(GLfloat s) { size = s; };
+		void setCentered(bool c) { centered = c; };
+		void setEnabled(bool state) { enabled = state; };
 		int* getData() { return text; };
 		float getSize() { return size; };
 		glm::vec4& getColor() { return color; };
 		glm::vec2& getPosition() { return position; };
 		int getNumCharacters() { return numCharacters; };
+		bool getCentered() { return centered; };
+		bool isEnabled() { return enabled; };
 	private:
 		glm::vec4 color = glm::vec4(1.0f,1.0f,1.0f,1.0f);
 		glm::vec2 position = glm::vec2(0.0f, 0.0f);
 		float size = 0.5f;
 		int text[64];
 		int numCharacters = 0;
+		bool centered = false;
+		bool enabled = true;
 	};
 
 	std::pair<unsigned, TextRenderer::TextEntry*> createTextEntry();

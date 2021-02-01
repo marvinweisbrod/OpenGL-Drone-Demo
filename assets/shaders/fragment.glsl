@@ -68,9 +68,21 @@ vec4 calculateSpotLight(vec4 colorDiff, vec4 colorSpec, vec3 lightPos, vec4 ligh
 	return result * lightColor;
 }
 
-vec4 calculateDirectionalLight(vec4 colorDiff, vec4 lightColor, vec3 lightDir) {
-	float NdotL = max(dot(vsNormalN, lightDir), 0.0);
-	return lightColor * colorDiff * NdotL;
+vec4 calculateDirectionalLight(vec4 colorDiff, vec4 colorSpec, vec4 lightColor, vec3 lightDir) {
+	vec3 lightDirN = normalize(-lightDir);
+	vec3 cameraDirN = normalize(vsViewPos-vsPos);
+	vec3 lightDirReflectN = normalize(reflect(-lightDirN, vsNormalN));
+	
+	float cosa = dot(vsNormalN, lightDirN);
+	float cosBeta = dot(lightDirReflectN, cameraDirN);
+	float cosBetak = pow(cosBeta, shine);
+	
+	vec4 diffuseResult = colorDiff * max(cosa, 0.0);
+	vec4 specularResult = colorSpec * max(cosBetak, 0.0);
+	return (diffuseResult + specularResult) * lightColor;
+	
+//	float NdotL = max(dot(vsNormalN, lightDir), 0.0);
+//	return lightColor * colorDiff * NdotL;
 }
 
 vec4 calculateLit(vec4 colorDiff, vec4 colorSpec){
@@ -80,7 +92,7 @@ vec4 calculateLit(vec4 colorDiff, vec4 colorSpec){
 	
 	total += calculateSpotLight(colorDiff, colorSpec, spotLightPos.xyz, spotLightColor, spotLightDir.xyz, spotLightAngles);
 
-	total += calculateDirectionalLight(colorDiff, directionalLightColor, directionalLightDir.xyz);
+	total += calculateDirectionalLight(colorDiff, colorSpec, directionalLightColor, directionalLightDir.xyz);
 
 	return total;
 }

@@ -56,10 +56,11 @@ bool Scene::init()
 			textRenderer->setAspect(currentAspect);
 
 			// hier jetzt testweise ein text hinzugefügt. der CollectibleManager kann sich selbst nen text erstellen und ihn immer wieder editieren.
-			auto result = textRenderer->createTextEntry();
-			result.second->setText("Tomate");
-			result.second->setPosition(glm::vec2(-0.99f, -1.0f));
-			result.second->setSize(0.2f);
+			//auto result = textRenderer->createTextEntry();
+			//result.second->setText("Bla");
+			//result.second->setPosition(glm::vec2(0.0f, 0.0f));
+			//result.second->setSize(0.3f);
+			//result.second->setCentered(true);
 		}
 		std::shared_ptr<Renderable> drone_body_transform;
 		{// Drone
@@ -75,11 +76,11 @@ bool Scene::init()
 		}
 		{// GROUND
 			auto ground = addObject("assets/models/ground.obj"
-				, "assets/textures/ground_diff.png"
-				, "assets/textures/ground_spec.png"
-				, "assets/textures/ground_emit.png", 100.0f);
+				, "assets/textures/ground2_diff.png"
+				, "assets/textures/black.png"
+				, "assets/textures/black.png", 90.0f);
 			r_ground = ground;
-			ground->scale(glm::vec3(0.5f, 0.01f, 0.5f));
+			ground->scale(glm::vec3(0.5f, 0.00f, 0.5f));
 			ground->translate(glm::vec3(0.0f, 0.0f, 0.0f));
 		}
 		{
@@ -92,7 +93,7 @@ bool Scene::init()
 		}
 		{// CAM FOLLOW
 			followCamera = std::make_shared<Camera>();
-			followCamera->setPerspective(glm::radians(60.0f), currentAspect, 0.01f, 100.0f);
+			followCamera->setPerspective(glm::radians(60.0f), currentAspect, 0.01f, 500.0f);
 			followCamera->translate(glm::vec3(0.0f, 0.4f, -0.8f));
 			followCamera->lookat(glm::vec3(0.0f,0.0f,0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 			//followCamera->rotateLocal(glm::angleAxis(glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f)));
@@ -100,23 +101,54 @@ bool Scene::init()
 		}
 		{// CAM FREE
 			freeCamera = std::make_shared<Camera>();
-			freeCamera->setPerspective(glm::radians(60.0f), currentAspect, 0.01f, 100.0f);
+			freeCamera->setPerspective(glm::radians(60.0f), currentAspect, 0.01f, 500.0f);
 			freeCamera->translate(glm::vec3(0.0f, 0.0f, -1.5f));
 			freeCamera->lookat(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 		}
 		{// LIGHTS
-			ambientLight = glm::vec4(0.1, 0.1, 0.1, 1.0);
-			pointLight = std::make_shared<PointLight>(glm::vec3(0.0f,2.0f,0.0f), glm::vec4(0.8f,0.8f,1.0f,1.0f));
-			spotLight = std::make_shared<SpotLight>(glm::vec3(0.0f, 0.0f, 34.0f), glm::vec3(0.0f,0.0f,1.0f), glm::radians(20.0f), glm::radians(40.0f), 
-				glm::vec4(1.0f, 0.9f, 0.7f, 1.0f), glm::vec3(0.0f, 0.02f, 0.2f));
+			const bool DAYMODE = true;
+
+			if (DAYMODE) {
+				ambientLight = glm::vec4(0.5, 0.5, 0.5, 1.0);
+				directionalLight = std::make_shared<DirectionalLight>(glm::vec3(1.0f, 1.0f, 1.0f), glm::vec4(0.5f, 0.5f, 0.4f, 1.0f));
+				spotLight = std::make_shared<SpotLight>(glm::vec3(0.0f, 0.0f, 34.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::radians(20.0f), glm::radians(40.0f),
+					glm::vec4(0.0f, 0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 0.22f, 0.0019f));
+			}
+			else {
+				ambientLight = glm::vec4(0.1, 0.1, 0.1, 1.0);
+				directionalLight = std::make_shared<DirectionalLight>(glm::vec3(1.0f, -1.0f, 1.0f), glm::vec4(0.4f, 0.40f, 0.6f, 1.0f));
+				spotLight = std::make_shared<SpotLight>(glm::vec3(0.0f, 0.0f, 34.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::radians(20.0f), glm::radians(40.0f),
+					glm::vec4(1.0f, 0.9f, 0.7f, 1.0f), glm::vec3(1.0f, 0.22f, 0.0019f));
+			}
+
 			spotLight->setParent(drone_body_transform.get());
-			directionalLight = std::make_shared<DirectionalLight>(glm::vec3(1.0f, -1.0f, 1.0f), glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+			pointLight = std::make_shared<PointLight>(glm::vec3(0.0f,2.0f,0.0f), glm::vec4(0.0f,0.0f,0.0f,0.0f));
+		}
+		{// Buildings
+			// good heights for our model are ß, -2.8, -5.8, -8.8, -11.8, -14.8
+			// green
+			instantiateApartment(0, glm::vec3( 10.0f,  0.0f, 20.0f),  0.0f);
+			instantiateApartment(0, glm::vec3( 10.0f, -2.8f,-10.0f),  0.0f);
+			instantiateApartment(2, glm::vec3(-10.0f, -5.8f, 20.0f),  0.0f);
+			instantiateApartment(1, glm::vec3( 10.0f, -8.8f,-20.0f),  0.0f);
+			instantiateApartment(2, glm::vec3(-19.0f, -2.8f, 15.0f), 90.0f);
+			instantiateApartment(1, glm::vec3( 20.0f, -2.8f,  0.0f),-90.0f);
+			instantiateApartment(1, glm::vec3( -9.0f,-11.8f,  6.0f), 90.0f);
+			instantiateApartment(1, glm::vec3(  6.0f,-14.8f,  6.0f), 90.0f);
+			instantiateApartment(2, glm::vec3(-10.0f, -5.8f,-16.0f),  0.0f);
+			instantiateApartment(0, glm::vec3( 25.0f,-11.8f, 16.0f), 90.0f);
 		}
 
 		collectibleManager = std::make_shared<CollectibleManager>(r_drone, textRenderer);
-		instantiateCake(glm::vec3(0.0f, 0.0f, 5.0f));
-		instantiateCake(glm::vec3(3.0f, 1.0f, -2.0f));
-		instantiateCake(glm::vec3(-2.0f, 0.0f, 1.0f));
+		// on buildings
+		instantiateCake(glm::vec3(10.0f, 18.0f, 19.5f));
+		instantiateCake(glm::vec3(-19.0f, 15.0f, 15.6f));
+		instantiateCake(glm::vec3(20.0f, 15.0f, -0.8f));
+		instantiateCake(glm::vec3(-10.0f, 12.0f, -16.6f));
+
+		// between buildings
+		instantiateCake(glm::vec3(10.0f, 0.0f, -15.0f));
+		instantiateCake(glm::vec3(-14.0f, 0.0f, 15.0f));
 
 		//initial opengl state
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
@@ -367,7 +399,7 @@ std::shared_ptr<Renderable> Scene::addDrone(std::string path, std::shared_ptr<Re
 	//baseBounds.include(rotor3->getTransformedBounds());
 	base->setBounds(baseBounds);
 
-	droneController = std::make_shared<DroneController>(std::static_pointer_cast<Transform>(parent), m_window);
+	droneController = std::make_shared<DroneController>(std::static_pointer_cast<Transform>(parent), m_window, buildings);
 	droneAnimator = std::make_shared<DroneAnimator>(droneController
 		, std::static_pointer_cast<Transform>(collection)
 		, std::static_pointer_cast<Transform>(rotor0)
@@ -376,6 +408,40 @@ std::shared_ptr<Renderable> Scene::addDrone(std::string path, std::shared_ptr<Re
 		, std::static_pointer_cast<Transform>(rotor3)
 		);
 
+	return base;
+}
+
+void Scene::instantiateApartment(int type, glm::vec3 pos, float rotation)
+{
+	auto apt = addApartment(type);
+	apt->translate(pos);
+	apt->rotate(glm::angleAxis(glm::radians(rotation), glm::vec3(0.0f, 1.0f, 0.0f)));
+}
+
+std::shared_ptr<Renderable> Scene::addApartment(int type)
+{
+	auto result = OBJLoader::loadOBJ("assets/models/apartment1.obj", false, false);
+	auto base = std::make_shared<Renderable>();
+	renderables.push_back(base);
+
+	std::string diffuse = "assets/textures/apartment1/apartment1.000.png";
+	if (type == 1)
+		diffuse = "assets/textures/apartment1/apartment1.001.png";
+	if (type == 2)
+		diffuse = "assets/textures/apartment1/apartment1.002.png";
+
+	for (auto& object : result.objects) {
+		auto child = std::make_shared<Renderable>();
+		renderables.push_back(child);
+		child->setParent(base.get());
+		for (auto& mesh : object.meshes) {
+			//OBJLoader::reverseWinding(mesh);
+			child->addMesh(std::make_shared<Mesh>(mesh.vertices, mesh.atts, mesh.indices, diffuse, "assets/textures/black.png", "assets/textures/black.png", mesh.bounds, 1.0f));
+		}
+	}
+
+	base->setBounds(result.bounds);
+	buildings.push_back(base);
 	return base;
 }
 

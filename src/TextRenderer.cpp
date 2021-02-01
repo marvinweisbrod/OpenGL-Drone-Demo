@@ -44,12 +44,13 @@ void TextRenderer::render()
 
 	for (auto& textEntry : textEntries) {
 		auto& current = textEntry.second;
+		if (!current.isEnabled()) continue;
 		m_shader->setUniform("text", current.getData(), current.getNumCharacters());
 		m_shader->setUniform("numChars", current.getNumCharacters());
 		m_shader->setUniform("color", current.getColor());
 		m_shader->setUniform("textSize", current.getSize());
 		m_shader->setUniform("textPos", current.getPosition());
-		
+		m_shader->setUniform("centered", current.getCentered() ? 1 : 0);
 
 		glBindVertexArray(vaoID);
 		glDrawElements(GL_TRIANGLE_STRIP, 4, GL_UNSIGNED_INT, 0);

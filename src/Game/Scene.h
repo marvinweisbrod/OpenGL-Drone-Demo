@@ -59,9 +59,12 @@ private:
 	std::shared_ptr<Camera> freeCamera;
 	std::shared_ptr<Renderable> r_cake;
 	std::shared_ptr<TextRenderer> textRenderer;
+	std::vector<std::shared_ptr<Renderable>> buildings;
 	glm::vec4 ambientLight;
 	bool currentCameraFree = false;
 	std::shared_ptr<Renderable> addObject(std::string path, std::string texDiff, std::string texSpec, std::string texEmss, float uvScale = 1.0f, bool reverseWinding = false);
 	std::shared_ptr<Renderable> addDrone(std::string path, std::shared_ptr<Renderable>& parent, bool reverseWinding, std::shared_ptr<Renderable>& out_body);
+	void instantiateApartment(int type, glm::vec3 pos, float rotation);
+	std::shared_ptr<Renderable> addApartment(int type);
 };
 

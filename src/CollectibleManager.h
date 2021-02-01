@@ -27,5 +27,6 @@ private:
     std::shared_ptr<Renderable>     drone;
     std::shared_ptr<TextRenderer>   textRenderer;
     size_t                          totalCollectibleCount = 0;
-    unsigned int                    textId = 0;
+    unsigned                        collectionTextId = 0;
+    unsigned                        winTextId = 0;
 };

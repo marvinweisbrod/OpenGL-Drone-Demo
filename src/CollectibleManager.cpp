@@ -7,9 +7,17 @@ CollectibleManager::CollectibleManager(const std::shared_ptr<Renderable>& drone,
     : drone(drone), textRenderer(textRenderer)
 {
     auto entry = textRenderer->createTextEntry();
-    textId = entry.first;
+    collectionTextId = entry.first;
     entry.second->setPosition(glm::vec2(-0.97f, 0.85f));
     entry.second->setSize(0.1f);
+
+    entry = textRenderer->createTextEntry();
+    winTextId = entry.first;
+    entry.second->setText("YOU WON!");
+    entry.second->setPosition(glm::vec2(0.0f, 0.0f));
+    entry.second->setSize(0.3f);
+    entry.second->setCentered(true);
+    entry.second->setEnabled(false);
 }
 
 void CollectibleManager::add(const std::shared_ptr<Renderable>& cake)
@@ -77,5 +85,7 @@ void CollectibleManager::update(float dt)
     // Update the text, stating how many collectibles already have been collected.
     std::stringstream buffer;
     buffer << "Collectibles: " << totalCollectibleCount - collectibles.size() << " / " << totalCollectibleCount;
-    textRenderer->getTextEntryById(textId).setText(buffer.str());
+    textRenderer->getTextEntryById(collectionTextId).setText(buffer.str());
+
+    textRenderer->getTextEntryById(winTextId).setEnabled(collectibles.size() == 0 ? true : false);
 }

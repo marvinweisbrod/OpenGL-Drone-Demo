@@ -2,9 +2,10 @@
 #include <iostream>
 #include <cmath>
 
-DroneController::DroneController(std::shared_ptr<Transform>& theDrone, GameWindow* g)
+DroneController::DroneController(std::shared_ptr<Transform>& theDrone, GameWindow* g, std::vector<std::shared_ptr<Renderable>>& b)
 	: drone(theDrone)
 	, gameWindow(g)
+	, buildings(b)
 {
 	state.dirAccel = glm::vec3(0.0f);
 	state.rotAccel = glm::vec3(0.0f);
@@ -47,16 +48,37 @@ void DroneController::update(float dt)
 	auto rotation = glm::angleAxis(state.rotSpeed.y * dt, glm::vec3(0.0, 1.0, 0.0));
 	// rotate speed vector based on rotation so we don't ignore momentum
 	state.dirSpeed = state.dirSpeed * rotation;
-	drone->translateLocal((state.dirSpeed * dt));
+
+	glm::vec4 previousPos = drone->getTransformMatrix() * glm::vec4(0.0f,0.0f,0.0f,1.0f);
+
+
+	// Disallow going below Y=0.2
+	const float buffer = 0.2f;
+	if (previousPos.y - buffer < 0.0f && state.dirSpeed.y < 0)
+		state.dirSpeed.y = 0;
+	glm::vec3 frameMovement = state.dirSpeed * dt;
+	if (frameMovement.y < 0 && previousPos.y + frameMovement.y < 0) {
+		frameMovement.y = frameMovement.y + (previousPos.y + frameMovement.y);
+		state.dirSpeed.y = 0;
+	}
+
+	drone->translateLocal(frameMovement);
 	drone->rotateLocal(rotation);
 
-	//std::cout << "dirSpeed: " << state.dirSpeed.x << " " << state.dirSpeed.y << " " << state.dirSpeed.z << "\n";
+	glm::vec3 newPos(drone->getTransformMatrix() * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
+	// check for collisions
+	if (isColliding(newPos)) {
+		state.dirSpeed = glm::vec3(0.0f);
+		state.dirAccel = glm::vec3(0.0f);
+		drone->translateLocal(-frameMovement);
+		drone->rotateLocal(-rotation);
+	}
 }
 
 float DroneController::flightControlAdjustment(float input, float speed, float accelerationMax)
 {
 	if (input != 0 || speed == 0) return 0.0f;
-	return (speed > 0 ? 1.0 : -1.0) * custom_min(accelerationMax, std::fabs(speed));
+	return (speed > 0 ? 1.0f : -1.0f) * custom_min(accelerationMax, std::fabs(speed));
 }
 
 void DroneController::checkInput(glm::vec3& out_dir, glm::vec3& out_rot)
@@ -74,4 +96,18 @@ void DroneController::checkInput(glm::vec3& out_dir, glm::vec3& out_rot)
 
 	if (gameWindow->getInput().getKeyState(Key::Q) == KeyState::Pressed) out_rot.y = 1.0;
 	if (gameWindow->getInput().getKeyState(Key::E) == KeyState::Pressed) out_rot.y = -1.0;
+}
+
+bool DroneController::isColliding(glm::vec3& newPos)
+{
+	for (auto& building : buildings) {
+		auto bounds = building->getTransformedBounds();
+		auto min = bounds.getMin();
+		auto max = bounds.getMax();
+		if (min.x < newPos.x && max.x > newPos.x
+			&& min.y < newPos.y && max.y > newPos.y
+			&& min.z < newPos.z && max.z > newPos.z)
+			return true;
+	}
+	return false;
 }
