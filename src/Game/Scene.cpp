@@ -66,7 +66,6 @@ bool Scene::init()
 			auto model = addDrone("assets/models/Drone_fixed2.obj", r_drone, false, drone_body_transform);
 			model->scale(glm::vec3(0.005f, 0.005f, 0.005f));
 			Bounds bounds = model->getTransformedBounds();
-			r_drone->translateLocal(glm::vec3(0.0f, 0.00f, 0.5f));
 			model->setParent(r_drone.get());
 			r_drone->setBounds(bounds);
 		}
@@ -146,6 +145,8 @@ bool Scene::init()
 		instantiateCake(glm::vec3(10.0f, 0.0f, -15.0f));
 		instantiateCake(glm::vec3(-14.0f, 0.0f, 15.0f));
 
+		flowManager = std::make_shared<FlowManager>(droneController, textRenderer, collectibleManager, m_window);
+
 		//initial opengl state
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
@@ -221,6 +222,7 @@ void Scene::update(float dt)
 	}
 
 	collectibleManager->update(dt);
+	flowManager->update();
 }
 
 GameWindow * Scene::getWindow()
@@ -296,7 +298,7 @@ std::shared_ptr<Renderable> Scene::addDrone(std::string path, std::shared_ptr<Re
 	auto result = OBJLoader::loadOBJ(path, false, false);
 	auto base = std::make_shared<Renderable>();
 	renderables.push_back(base);
-
+	parent->translateLocal(glm::vec3(0.0f, 0.00f, 0.5f));
 	auto collection = std::make_shared<Renderable>();
 	collection->setParent(base.get());
 	out_body = collection;

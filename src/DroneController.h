@@ -22,6 +22,7 @@ public:
 		glm::vec3 dirSpeedMax;
 	};
 	const State& getState() { return state; };
+	void reset();
 private:
 	std::shared_ptr<Transform> drone;
 	GameWindow* gameWindow;
@@ -31,4 +32,6 @@ private:
 	float flightControlAdjustment(float input, float speed, float accelerationMax);
 	float custom_min(float a, float b) { return a < b ? a : b; };
 	bool isColliding(glm::vec3& newPos);
+	glm::quat initialRotation;
+	glm::vec3 initialPosition;
 };

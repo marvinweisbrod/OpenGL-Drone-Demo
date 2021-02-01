@@ -6,7 +6,7 @@ uniform int numChars;
 uniform float aspect;
 uniform float textSize;
 uniform vec2 textPos;
-uniform int centered;
+uniform vec2 positioning;
 
 out vec2 vsUV;
 
@@ -17,17 +17,17 @@ void main(){
 
 	vec2 pos = dir;
 
-	// center incoming coordinates if text has to be centered
-	if(centered == 1){
-		if(pos.x == 0.0) 
-			pos.x = -0.5;
-		else 
-			pos.x = 0.5;
-
-		if(pos.y == 0.0) 
-			pos.y = -0.5;
-		else 
-			pos.y = 0.5;
+	if(positioning.x == 0){
+		pos.x -= 0.5;
+	}
+	if(positioning.x == 1.0){
+		pos.x -= 1.0;
+	}
+	if(positioning.y == 0){
+		pos.y -= 0.5;
+	}
+	if(positioning.y == 1.0){
+		pos.y -= 1.0;
 	}
 
 	pos.x = pos.x/aspect/2; // divided by 2 because a glyphs width is half its height

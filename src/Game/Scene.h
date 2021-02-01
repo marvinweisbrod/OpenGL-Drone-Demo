@@ -10,6 +10,7 @@
 #include "DroneAnimator.h"
 #include "TextRenderer.h"
 #include "SkyboxRenderer.h"
+#include "FlowManager.h"
 
 class CollectibleManager;
 class DirectionalLight;
@@ -49,6 +50,7 @@ private:
 	std::shared_ptr<DroneAnimator> droneAnimator;
 	std::shared_ptr<CollectibleManager> collectibleManager;
 	std::vector<std::shared_ptr<Renderable>> renderables;
+	std::shared_ptr<FlowManager> flowManager;
 
 	// Scene Objects
 	std::shared_ptr<Renderable> r_ground;

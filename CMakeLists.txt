@@ -32,6 +32,8 @@ list(APPEND SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/src/TextRenderer.h")
 list(APPEND SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/src/TextRenderer.cpp")
 list(APPEND SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/src/SkyboxRenderer.h")
 list(APPEND SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/src/SkyboxRenderer.cpp")
+list(APPEND SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/src/FlowManager.h")
+list(APPEND SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/src/FlowManager.cpp")
 
 list(APPEND SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/assets/shaders/fragment.glsl")
 list(APPEND SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/assets/shaders/vertex.glsl")

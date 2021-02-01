@@ -16,6 +16,9 @@ DroneController::DroneController(std::shared_ptr<Transform>& theDrone, GameWindo
 	state.rotAccelMax = glm::vec3(3.0f, 3.0f, 3.0f);
 	state.rotSpeedMax = glm::vec3(2.0f, 2.0f, 2.0f);
 	state.dirSpeedMax = glm::vec3(6.0f, 6.0f, 6.0f);
+
+	initialRotation = drone->getRotation();
+	initialPosition = drone->getPosition();
 }
 
 DroneController::~DroneController()
@@ -79,6 +82,16 @@ float DroneController::flightControlAdjustment(float input, float speed, float a
 {
 	if (input != 0 || speed == 0) return 0.0f;
 	return (speed > 0 ? 1.0f : -1.0f) * custom_min(accelerationMax, std::fabs(speed));
+}
+
+void DroneController::reset()
+{
+	state.dirSpeed = glm::vec3(0.0f);
+	state.dirAccel = glm::vec3(0.0f);
+	state.rotSpeed = glm::vec3(0.0f);
+	state.rotAccel = glm::vec3(0.0f);
+	drone->setPosition(initialPosition);
+	drone->setRotation(initialRotation);
 }
 
 void DroneController::checkInput(glm::vec3& out_dir, glm::vec3& out_rot)

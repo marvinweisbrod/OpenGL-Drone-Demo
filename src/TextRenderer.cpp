@@ -50,7 +50,7 @@ void TextRenderer::render()
 		m_shader->setUniform("color", current.getColor());
 		m_shader->setUniform("textSize", current.getSize());
 		m_shader->setUniform("textPos", current.getPosition());
-		m_shader->setUniform("centered", current.getCentered() ? 1 : 0);
+		m_shader->setUniform("positioning", current.getPositioning());
 
 		glBindVertexArray(vaoID);
 		glDrawElements(GL_TRIANGLE_STRIP, 4, GL_UNSIGNED_INT, 0);

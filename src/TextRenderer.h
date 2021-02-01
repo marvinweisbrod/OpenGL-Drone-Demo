@@ -17,14 +17,14 @@ public:
 		void setColor(glm::vec4 c) { color = c; };
 		void setPosition(glm::vec2 p) { position = p; };
 		void setSize(GLfloat s) { size = s; };
-		void setCentered(bool c) { centered = c; };
+		void setPositioning(glm::vec2 p) { positioning = p; };
 		void setEnabled(bool state) { enabled = state; };
 		int* getData() { return text; };
 		float getSize() { return size; };
 		glm::vec4& getColor() { return color; };
 		glm::vec2& getPosition() { return position; };
 		int getNumCharacters() { return numCharacters; };
-		bool getCentered() { return centered; };
+		glm::vec2&  getPositioning() { return positioning; };
 		bool isEnabled() { return enabled; };
 	private:
 		glm::vec4 color = glm::vec4(1.0f,1.0f,1.0f,1.0f);
@@ -32,7 +32,11 @@ public:
 		float size = 0.5f;
 		int text[64];
 		int numCharacters = 0;
-		bool centered = false;
+		// Positioning:
+		// 0.0 = centered on that axis
+		// 1.0 / -1.0 = where on the rectangle is the origin
+		// in between values not supported
+		glm::vec2 positioning = glm::vec2(0.0f, 0.0f);
 		bool enabled = true;
 	};
 

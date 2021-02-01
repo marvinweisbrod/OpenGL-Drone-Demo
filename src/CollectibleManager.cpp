@@ -8,7 +8,8 @@ CollectibleManager::CollectibleManager(const std::shared_ptr<Renderable>& drone,
 {
     auto entry = textRenderer->createTextEntry();
     collectionTextId = entry.first;
-    entry.second->setPosition(glm::vec2(-0.97f, 0.85f));
+    entry.second->setPosition(glm::vec2(-0.99f, 0.99f));
+    entry.second->setPositioning(glm::vec2(-1.0f, 1.0f));
     entry.second->setSize(0.1f);
 
     entry = textRenderer->createTextEntry();
@@ -16,7 +17,15 @@ CollectibleManager::CollectibleManager(const std::shared_ptr<Renderable>& drone,
     entry.second->setText("YOU WON!");
     entry.second->setPosition(glm::vec2(0.0f, 0.0f));
     entry.second->setSize(0.3f);
-    entry.second->setCentered(true);
+    entry.second->setPositioning(glm::vec2(0.0f,-1.0f));
+    entry.second->setEnabled(false);
+
+    entry = textRenderer->createTextEntry();
+    resetTextId = entry.first;
+    entry.second->setText("(press 'SPACE' to reset)");
+    entry.second->setPosition(glm::vec2(0.0f, 0.0f));
+    entry.second->setSize(0.05f);
+    entry.second->setPositioning(glm::vec2(0.0f, 1.0f));
     entry.second->setEnabled(false);
 }
 
@@ -74,6 +83,7 @@ void CollectibleManager::update(float dt)
         if(collectibleBounds.collide(droneBounds))
         {
             (*it).renderable->setActive(false);
+            collectedCollectibles.push_back(*it);
             it = collectibles.erase(it);
         }
         else
@@ -88,4 +98,14 @@ void CollectibleManager::update(float dt)
     textRenderer->getTextEntryById(collectionTextId).setText(buffer.str());
 
     textRenderer->getTextEntryById(winTextId).setEnabled(collectibles.size() == 0 ? true : false);
+    textRenderer->getTextEntryById(resetTextId).setEnabled(collectibles.size() == 0 ? true : false);
+}
+
+void CollectibleManager::reset()
+{
+    for (auto& collectible : collectedCollectibles) {
+        collectible.renderable->setActive(true);
+        collectibles.push_back(collectible);
+    }
+    collectedCollectibles.clear();
 }
