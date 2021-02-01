@@ -90,7 +90,8 @@ bool Scene::init()
 		{// LIGHTS
 			ambientLight = glm::vec4(0.1, 0.1, 0.1, 1.0);
 			pointLight = std::make_shared<PointLight>(glm::vec3(0.0f,2.0f,0.0f), glm::vec4(0.8f,0.8f,1.0f,1.0f));
-			spotLight = std::make_shared<SpotLight>(glm::vec3(0.0f, 0.0f, 0.2f), glm::vec3(0.0f,0.0f,1.0f), glm::radians(30.0f), glm::radians(60.0f), glm::vec4(1.0f, 0.9f, 0.7f, 1.0f));
+			spotLight = std::make_shared<SpotLight>(glm::vec3(0.0f, 0.0f, 0.2f), glm::vec3(0.0f,0.0f,1.0f), glm::radians(30.0f), glm::radians(60.0f), 
+				glm::vec4(1.0f, 0.9f, 0.7f, 1.0f), glm::vec3(0.4f, 0.02f, 0.0f));
 			spotLight->setParent(r_drone.get());
 		}
 

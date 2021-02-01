@@ -74,6 +74,7 @@ void ShaderProgram::bind(SpotLight& slight)
 	setUniform("spotLightDir", dir);
 	auto angles = slight.getAnglesInnerOuter();
 	setUniform("spotLightAngles", angles);
+	setUniform("spotLightAttenuation", slight.getAttenuation());
 }
 
 GLuint ShaderProgram::getFreeTU()
