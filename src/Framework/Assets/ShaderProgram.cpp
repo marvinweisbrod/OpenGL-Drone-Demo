@@ -1,5 +1,5 @@
 #include "ShaderProgram.h"
-
+#include "DirectionalLight.h"
 
 
 ShaderProgram::ShaderProgram() :
@@ -75,6 +75,13 @@ void ShaderProgram::bind(SpotLight& slight)
 	auto angles = slight.getAnglesInnerOuter();
 	setUniform("spotLightAngles", angles);
 	setUniform("spotLightAttenuation", slight.getAttenuation());
+}
+
+void ShaderProgram::bind(DirectionalLight& dlight)
+{
+	auto dir = dlight.getZAxis();
+	setUniform("directionalLightDir", dir);
+	setUniform("directionalLightColor", dlight.getColor());
 }
 
 GLuint ShaderProgram::getFreeTU()

@@ -6,6 +6,8 @@
 #include <PointLight.h>
 #include <SpotLight.h>
 
+class DirectionalLight;
+
 class ShaderProgram
 {
 public:
@@ -20,6 +22,7 @@ public:
 	void bind(Camera& camera);
 	void bind(PointLight& plight);
 	void bind(SpotLight& slight);
+	void bind(DirectionalLight& dlight);
 	GLuint prog;
 	GLuint currentTu;
 

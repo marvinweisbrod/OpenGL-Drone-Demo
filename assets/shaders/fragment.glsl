@@ -16,6 +16,8 @@ uniform vec4 spotLightPos;
 uniform vec4 spotLightDir;
 uniform vec4 spotLightColor;
 uniform vec3 spotLightAttenuation;
+uniform vec3 directionalLightDir;
+uniform vec4 directionalLightColor;
 
 in vec3 vsNormalN;
 in vec3 vsPos;
@@ -66,6 +68,10 @@ vec4 calculateSpotLight(vec4 colorDiff, vec4 colorSpec, vec3 lightPos, vec4 ligh
 	return result * lightColor;
 }
 
+vec4 calculateDirectionalLight(vec4 colorDiff, vec4 lightColor, vec3 lightDir) {
+	float NdotL = max(dot(vsNormalN, lightDir), 0.0);
+	return lightColor * colorDiff * NdotL;
+}
 
 vec4 calculateLit(vec4 colorDiff, vec4 colorSpec){
 	vec4 total;
@@ -73,6 +79,8 @@ vec4 calculateLit(vec4 colorDiff, vec4 colorSpec){
 	total += calculatePointLight(colorDiff, colorSpec, pointLightPos.xyz, pointLightColor);
 	
 	total += calculateSpotLight(colorDiff, colorSpec, spotLightPos.xyz, spotLightColor, spotLightDir.xyz, spotLightAngles);
+
+	total += calculateDirectionalLight(colorDiff, directionalLightColor, directionalLightDir.xyz);
 
 	return total;
 }

@@ -11,6 +11,7 @@
 #include "TextRenderer.h"
 
 class CollectibleManager;
+class DirectionalLight;
 
 class Scene
 {
@@ -53,6 +54,7 @@ private:
 	std::shared_ptr<Renderable> r_drone;
 	std::shared_ptr<PointLight> pointLight;
 	std::shared_ptr<SpotLight> spotLight;
+	std::shared_ptr<DirectionalLight> directionalLight;
 	std::shared_ptr<Camera> followCamera;
 	std::shared_ptr<Camera> freeCamera;
 	std::shared_ptr<Renderable> r_cake;
