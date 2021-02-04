@@ -15,6 +15,18 @@
 class CollectibleManager;
 class DirectionalLight;
 
+enum class ViewMode
+{
+	kDefault,
+	kDeferredOnly,
+	kPosition,
+	kNormal,
+	kAlbedo,
+	kSpec,
+	kEmissive,
+	kShine,
+};
+
 class Scene
 {
 public:
@@ -37,12 +49,16 @@ private:
 	std::shared_ptr<Renderable> instantiateCake(const glm::vec3& position, const glm::quat& rotation = glm::quat(1.0f, 0.0f, 0.0f, 0.0f),
 		const glm::vec3& scale = glm::vec3(1.0f, 1.0f, 1.0f));
 	std::shared_ptr<Renderable> cloneRenderable(Renderable* renderable);
+	void setViewMode(ViewMode mode);
 
 private:
 	GameWindow* m_window;
 	AssetManager m_assets;
     ShaderProgram* m_shaderMain;
 	ShaderProgram* m_shaderText;
+	ShaderProgram* m_shaderGeometryPass;
+	ShaderProgram* m_shaderLightingPass;
+	ShaderProgram* m_shaderVisualization;
     GLuint vaoID, vboID, eboID;
 	GLuint vertexCount = 0;
 	float currentAspect;
@@ -70,5 +86,16 @@ private:
 	std::shared_ptr<Renderable> addDrone(std::string path, std::shared_ptr<Renderable>& parent, bool reverseWinding, std::shared_ptr<Renderable>& out_body);
 	void instantiateApartment(int type, glm::vec3 pos, float rotation);
 	std::shared_ptr<Renderable> addApartment(int type);
+
+	// Deferred shading
+	unsigned int gBuffer;
+	unsigned int gPosition;
+	unsigned int gNormal;
+	unsigned int gAlbedoSpec;
+	unsigned int gEmissiveShine;
+	unsigned int gDepth;
+	GLuint quadVao;
+	ViewMode viewMode = ViewMode::kDefault;
+	unsigned int viewModeTextId;
 };
 

@@ -41,6 +41,11 @@ list(APPEND SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/assets/shaders/textFrag.glsl")
 list(APPEND SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/assets/shaders/textVert.glsl")
 list(APPEND SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/assets/shaders/skyboxFrag.glsl")
 list(APPEND SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/assets/shaders/skyboxVert.glsl")
+list(APPEND SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/assets/shaders/geometryPassFrag.glsl")
+list(APPEND SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/assets/shaders/geometryPassVert.glsl")
+list(APPEND SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/assets/shaders/lightingPassFrag.glsl")
+list(APPEND SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/assets/shaders/lightingPassVert.glsl")
+list(APPEND SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/assets/shaders/visualizationFrag.glsl")
 
 ## Framework/Assets
 list(APPEND SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/src/Framework/Assets/AssetManager.h")

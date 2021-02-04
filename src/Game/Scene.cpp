@@ -27,6 +27,12 @@ bool Scene::init()
 		m_shaderMain = m_assets.getShaderProgram("main");
 		m_assets.addShaderProgram("text", AssetManager::createShaderProgram("assets/shaders/textVert.glsl", "assets/shaders/textFrag.glsl"));
 		m_assets.addShaderProgram("skybox", AssetManager::createShaderProgram("assets/shaders/skyboxVert.glsl", "assets/shaders/skyboxFrag.glsl"));
+		m_assets.addShaderProgram("geometryPass", AssetManager::createShaderProgram("assets/shaders/geometryPassVert.glsl", "assets/shaders/geometryPassFrag.glsl"));
+		m_shaderGeometryPass = m_assets.getShaderProgram("geometryPass");
+		m_assets.addShaderProgram("lightingPass", AssetManager::createShaderProgram("assets/shaders/lightingPassVert.glsl", "assets/shaders/lightingPassFrag.glsl"));
+		m_shaderLightingPass = m_assets.getShaderProgram("lightingPass");
+		m_assets.addShaderProgram("visualization", AssetManager::createShaderProgram("assets/shaders/lightingPassVert.glsl", "assets/shaders/visualizationFrag.glsl"));
+		m_shaderVisualization = m_assets.getShaderProgram("visualization");
 
 		glEnable(GL_CULL_FACE);
 		glFrontFace(GL_CCW);
@@ -46,6 +52,12 @@ bool Scene::init()
 			//result.second->setPosition(glm::vec2(0.0f, 0.0f));
 			//result.second->setSize(0.3f);
 			//result.second->setCentered(true);
+
+			auto result = textRenderer->createTextEntry();
+			viewModeTextId = result.first;
+			result.second->setPosition(glm::vec2(0.0f, 0.9f));
+			result.second->setSize(0.1f);
+			result.second->setEnabled(false);
 		}
 		{
 			std::vector<std::string> faces
@@ -147,8 +159,105 @@ bool Scene::init()
 
 		flowManager = std::make_shared<FlowManager>(droneController, textRenderer, collectibleManager, m_window);
 
+		// Initialize gbuffer
+		glGenFramebuffers(1, &gBuffer); GLERR
+		glBindFramebuffer(GL_FRAMEBUFFER, gBuffer); GLERR
+		GLsizei framebufferWidth = m_window->getFrameBufferWidth();
+		GLsizei framebufferHeight = m_window->getFrameBufferHeight();
+
+		// Position color buffer
+		glGenTextures(1, &gPosition); GLERR
+		glBindTexture(GL_TEXTURE_2D, gPosition); GLERR
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, framebufferWidth, framebufferHeight, 0, GL_RGBA, GL_FLOAT, nullptr); GLERR
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST); GLERR
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST); GLERR
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, gPosition, 0); GLERR
+		//glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, gPosition, 0); GLERR
+
+		// Normal color buffer
+		glGenTextures(1, &gNormal); GLERR
+		glBindTexture(GL_TEXTURE_2D, gNormal); GLERR
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, framebufferWidth, framebufferHeight, 0, GL_RGBA, GL_FLOAT, nullptr); GLERR
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST); GLERR
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST); GLERR
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, gNormal, 0); GLERR
+		//glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, gNormal, 0); GLERR
+
+		// Color + spec color buffer
+		glGenTextures(1, &gAlbedoSpec); GLERR
+		glBindTexture(GL_TEXTURE_2D, gAlbedoSpec); GLERR
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, framebufferWidth, framebufferHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr); GLERR
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST); GLERR
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST); GLERR
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, gAlbedoSpec, 0); GLERR
+		//glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, gAlbedoSpec, 0); GLERR
+
+		// Emissive color buffer
+		glGenTextures(1, &gEmissiveShine); GLERR
+		glBindTexture(GL_TEXTURE_2D, gEmissiveShine); GLERR
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, framebufferWidth, framebufferHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr); GLERR
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST); GLERR
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST); GLERR
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, GL_TEXTURE_2D, gEmissiveShine, 0); GLERR
+		//glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, gEmissiveShine, 0); GLERR
+
+		// Depth buffer object
+		glGenRenderbuffers(1, &gDepth); GLERR
+		glBindRenderbuffer(GL_RENDERBUFFER, gDepth); GLERR
+		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, framebufferWidth, framebufferHeight); GLERR
+		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, gDepth); GLERR
+		//glGenTextures(1, &gDepth);
+		//glBindTexture(GL_TEXTURE_2D, gDepth);
+		//glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32F, framebufferWidth, framebufferHeight, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr); GLERR
+		//glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, gDepth, 0); GLERR
+
+		// Set which color attachments we use
+		unsigned int attachments[4] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3 };
+		glDrawBuffers(4, attachments); GLERR
+
+		//unsigned int attachments[1] = { GL_COLOR_ATTACHMENT0 };
+		//glDrawBuffers(1, attachments); GLERR
+
+		GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER); GLERR
+		if(status != GL_FRAMEBUFFER_COMPLETE)
+		{
+			std::cerr << "GBuffer failed to initialize: " << status << "\n";
+			exit(1);
+		}
+
+		glBindFramebuffer(GL_FRAMEBUFFER, 0); GLERR
+
+		// Generate full screen quad.
+		glGenVertexArrays(1, &quadVao); GLERR
+		glBindVertexArray(quadVao); GLERR
+
+		static const GLfloat quadVertexBufferData[] = {
+			/*
+			-1.0f, -1.0f, 0.0f, 0.0f,
+			1.0f, -1.0f, 1.0f, 0.0f,
+			-1.0f, 1.0f, 0.0f, 1.0f,
+			-1.0f, 1.0f, 0.0f, 1.0f,
+			1,.0f, -1.0f, 1.0f, 0.0f,
+			1.0f, 1.0f, 1.0f, 1.0f
+			*/
+
+			1, -1, 1.0f, 0.0f,
+			1, 1, 1.0f, 1.0f,
+			-1, -1, 0.0f, 0.0f,
+			-1, 1, 0.0f, 1.0f
+		};
+
+		GLuint quadVbo;
+		glGenBuffers(1, &quadVbo); GLERR
+		glBindBuffer(GL_ARRAY_BUFFER, quadVbo); GLERR
+		glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertexBufferData), quadVertexBufferData, GL_STATIC_DRAW); GLERR
+		glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 4, 0); GLERR
+		glEnableVertexAttribArray(0); GLERR
+		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 4, (const void*) (sizeof(GLfloat) * 2)); GLERR
+		glEnableVertexAttribArray(1); GLERR
+
 		//initial opengl state
-		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+		glClearColor(0.0f, 0.0f, 0.0f, 1.0f); GLERR
 
         std::cout << "Scene initialization done\n";
 
@@ -167,6 +276,133 @@ void Scene::shutdown()
 
 void Scene::render(float dt)
 {
+	// Deferred shading
+	GLsizei width = m_window->getFrameBufferWidth();
+	GLsizei height = m_window->getFrameBufferHeight();
+
+	// --------------------------------
+	// Geometry pass
+	glBindFramebuffer(GL_FRAMEBUFFER, gBuffer); GLERR
+	glViewport(0, 0, width, height);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); GLERR
+	m_shaderGeometryPass->use();
+
+	// Setup uniforms
+	m_shaderGeometryPass->bind(currentCameraFree ? *freeCamera : *followCamera);
+
+	// Render all meshes to the framebuffer
+	for(auto& renderable : renderables)
+	{
+		renderable->render(*m_shaderGeometryPass);
+	}
+	
+	// -------------------------------
+	// Light pass
+	glBindFramebuffer(GL_FRAMEBUFFER, 0); GLERR
+	glViewport(0, 0, width, height);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); GLERR
+
+	if(viewMode == ViewMode::kDefault || viewMode == ViewMode::kDeferredOnly)
+	{
+		m_shaderLightingPass->use();
+
+		// Setup uniforms
+		glm::mat4 viewMatrix = currentCameraFree ? freeCamera->getViewMatrix() : followCamera->getViewMatrix();
+		m_shaderLightingPass->setUniform("viewMatInv", glm::inverse(viewMatrix), false);
+		m_shaderLightingPass->bind(*pointLight);
+		m_shaderLightingPass->bind(*spotLight);
+		m_shaderLightingPass->bind(*directionalLight);
+		m_shaderLightingPass->setUniform("ambient", ambientLight);
+		glActiveTexture(GL_TEXTURE0); GLERR
+		glBindTexture(GL_TEXTURE_2D, gPosition); GLERR
+		m_shaderLightingPass->setUniform("gPosition", 0);
+		glActiveTexture(GL_TEXTURE1); GLERR
+		glBindTexture(GL_TEXTURE_2D, gNormal); GLERR
+		m_shaderLightingPass->setUniform("gNormal", 1);
+		glActiveTexture(GL_TEXTURE2); GLERR
+		glBindTexture(GL_TEXTURE_2D, gAlbedoSpec); GLERR
+		m_shaderLightingPass->setUniform("gAlbedoSpec", 2);
+		glActiveTexture(GL_TEXTURE3); GLERR
+		glBindTexture(GL_TEXTURE_2D, gEmissiveShine); GLERR
+		m_shaderLightingPass->setUniform("gEmissiveShine", 3);
+	}
+	else
+	{
+		m_shaderVisualization->use();
+
+		// Setup uniforms
+		glActiveTexture(GL_TEXTURE0); GLERR
+		glm::mat4 channels(1.0f);
+		channels[3][3] = 0.0f;
+		glm::vec4 additive(0.0f, 0.0f, 0.0f, 1.0f);
+		switch(viewMode)
+		{
+		case ViewMode::kPosition:
+			glBindTexture(GL_TEXTURE_2D, gPosition); GLERR
+			break;
+
+		case ViewMode::kNormal:
+			glBindTexture(GL_TEXTURE_2D, gNormal); GLERR
+			break;
+
+		case ViewMode::kAlbedo:
+			glBindTexture(GL_TEXTURE_2D, gAlbedoSpec); GLERR
+			break;
+
+		case ViewMode::kSpec:
+			glBindTexture(GL_TEXTURE_2D, gAlbedoSpec); GLERR
+			channels[0][0] = 0.0f;
+			channels[1][1] = 0.0f;
+			channels[2][2] = 0.0f;
+			channels[3][0] = 1.0f;
+			channels[3][1] = 1.0f;
+			channels[3][2] = 1.0f;
+			break;
+
+		case ViewMode::kEmissive:
+			glBindTexture(GL_TEXTURE_2D, gEmissiveShine); GLERR
+			break;
+
+		case ViewMode::kShine:
+			glBindTexture(GL_TEXTURE_2D, gEmissiveShine); GLERR
+			channels[0][0] = 0.0f;
+			channels[1][1] = 0.0f;
+			channels[2][2] = 0.0f;
+			channels[3][0] = 0.01f;
+			channels[3][1] = 0.01f;
+			channels[3][2] = 0.01f;
+			break;
+		}
+		m_shaderVisualization->setUniform("gTexture", 0);
+		m_shaderVisualization->setUniform("channels", channels, false);
+		m_shaderVisualization->setUniform("additive", additive);
+	}
+
+	// Render the quad
+	glBindVertexArray(quadVao);
+	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4); GLERR
+
+	// ---------------------------------------
+	// Forward pass
+
+	// Render text without depth test
+	glDisable(GL_DEPTH_TEST);
+	textRenderer->render();
+	glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_LEQUAL);
+
+	// For blitting
+	/*
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glBindFramebuffer(GL_READ_FRAMEBUFFER, gBuffer);
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+	glReadBuffer(GL_COLOR_ATTACHMENT1);
+	glBlitFramebuffer(0, 0, width, height, 0, 0, width, height, GL_COLOR_BUFFER_BIT, GL_LINEAR);
+	*/
+
+	// Old code
+	/*
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	m_shaderMain->use();
 	m_shaderMain->bind(currentCameraFree ? *freeCamera : *followCamera);
@@ -186,6 +422,7 @@ void Scene::render(float dt)
 	textRenderer->render();
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LEQUAL);
+	*/
 }
 
 void Scene::update(float dt)
@@ -225,6 +462,47 @@ void Scene::update(float dt)
 	flowManager->update();
 }
 
+void Scene::setViewMode(ViewMode mode)
+{
+	if(viewMode != mode)
+	{
+		viewMode = mode;
+
+		TextRenderer::TextEntry& viewModeText = textRenderer->getTextEntryById(viewModeTextId);
+		viewModeText.setEnabled(mode != ViewMode::kDefault);
+		switch(mode)
+		{
+		case ViewMode::kAlbedo:
+			viewModeText.setText("Albedo");
+			break;
+
+		case ViewMode::kDeferredOnly:
+			viewModeText.setText("Deferred only");
+			break;
+
+		case ViewMode::kEmissive:
+			viewModeText.setText("Emissive");
+			break;
+
+		case ViewMode::kNormal:
+			viewModeText.setText("Normal");
+			break;
+
+		case ViewMode::kPosition:
+			viewModeText.setText("Position");
+			break;
+
+		case ViewMode::kShine:
+			viewModeText.setText("Shine");
+			break;
+
+		case ViewMode::kSpec:
+			viewModeText.setText("Specular");
+			break;
+		}
+	}
+}
+
 GameWindow * Scene::getWindow()
 {
 	return m_window;
@@ -232,7 +510,41 @@ GameWindow * Scene::getWindow()
 
 void Scene::onKey(Key key, Action action, Modifier modifier)
 {
-
+	if(action == Action::Down)
+	{
+		if(key == Key::K3)
+		{
+			setViewMode(ViewMode::kDefault);
+		}
+		else if(key == Key::K4)
+		{
+			setViewMode(ViewMode::kDeferredOnly);
+		}
+		else if(key == Key::K5)
+		{
+			setViewMode(ViewMode::kPosition);
+		}
+		else if(key == Key::K6)
+		{
+			setViewMode(ViewMode::kNormal);
+		}
+		else if(key == Key::K7)
+		{
+			setViewMode(ViewMode::kAlbedo);
+		}
+		else if(key == Key::K8)
+		{
+			setViewMode(ViewMode::kSpec);
+		}
+		else if(key == Key::K9)
+		{
+			setViewMode(ViewMode::kEmissive);
+		}
+		else if(key == Key::K0)
+		{
+			setViewMode(ViewMode::kShine);
+		}
+	}
 }
 
 void Scene::onMouseMove(MousePosition mouseposition)
