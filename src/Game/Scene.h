@@ -50,6 +50,7 @@ private:
 		const glm::vec3& scale = glm::vec3(1.0f, 1.0f, 1.0f));
 	std::shared_ptr<Renderable> cloneRenderable(Renderable* renderable);
 	void setViewMode(ViewMode mode);
+	void setDayMode(bool day = true);
 
 private:
 	GameWindow* m_window;
@@ -67,6 +68,7 @@ private:
 	std::shared_ptr<CollectibleManager> collectibleManager;
 	std::vector<std::shared_ptr<Renderable>> renderables;
 	std::shared_ptr<FlowManager> flowManager;
+	bool dayMode = true;
 
 	// Scene Objects
 	std::shared_ptr<Renderable> r_ground;

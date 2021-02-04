@@ -5,3 +5,8 @@ DirectionalLight::DirectionalLight(const glm::vec3& direction, const glm::vec4& 
 {
     lookinto(direction);
 }
+
+void DirectionalLight::setDirection(const glm::vec3& direction)
+{
+    lookinto(direction);
+}

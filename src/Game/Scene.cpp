@@ -114,19 +114,10 @@ bool Scene::init()
 		}
 		{// LIGHTS
 			const bool DAYMODE = true;
-
-			if (DAYMODE) {
-				ambientLight = glm::vec4(0.5, 0.5, 0.5, 1.0);
-				directionalLight = std::make_shared<DirectionalLight>(glm::vec3(1.0f, 1.0f, 1.0f), glm::vec4(0.5f, 0.5f, 0.4f, 1.0f));
-				spotLight = std::make_shared<SpotLight>(glm::vec3(0.0f, 0.0f, 34.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::radians(20.0f), glm::radians(40.0f),
-					glm::vec4(0.0f, 0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 0.22f, 0.0019f));
-			}
-			else {
-				ambientLight = glm::vec4(0.1, 0.1, 0.1, 1.0);
-				directionalLight = std::make_shared<DirectionalLight>(glm::vec3(1.0f, -1.0f, 1.0f), glm::vec4(0.4f, 0.40f, 0.6f, 1.0f));
-				spotLight = std::make_shared<SpotLight>(glm::vec3(0.0f, 0.0f, 34.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::radians(20.0f), glm::radians(40.0f),
-					glm::vec4(1.0f, 0.9f, 0.7f, 1.0f), glm::vec3(1.0f, 0.22f, 0.0019f));
-			}
+			ambientLight = glm::vec4(0.5, 0.5, 0.5, 1.0);
+			directionalLight = std::make_shared<DirectionalLight>(glm::vec3(1.0f, 1.0f, 1.0f), glm::vec4(0.5f, 0.5f, 0.4f, 1.0f));
+			spotLight = std::make_shared<SpotLight>(glm::vec3(0.0f, 0.0f, 34.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::radians(20.0f), glm::radians(40.0f),
+				glm::vec4(0.0f, 0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 0.22f, 0.0019f));
 
 			spotLight->setParent(drone_body_transform.get());
 			pointLight = std::make_shared<PointLight>(glm::vec3(0.0f,2.0f,0.0f), glm::vec4(0.0f,0.0f,0.0f,0.0f));
@@ -476,6 +467,28 @@ void Scene::setViewMode(ViewMode mode)
 	}
 }
 
+void Scene::setDayMode(bool day)
+{
+	if(dayMode != day)
+	{
+		dayMode = day;
+		if(dayMode)
+		{
+			ambientLight = glm::vec4(0.5, 0.5, 0.5, 1.0);
+			directionalLight->getColor() = glm::vec4(0.5f, 0.5f, 0.4f, 1.0f);
+			directionalLight->setDirection(glm::vec3(1.0f, 1.0f, 1.0f));
+			spotLight->getColor() = glm::vec4(0.0f, 0.0f, 0.0f, 0.0f);
+		}
+		else
+		{
+			ambientLight = glm::vec4(0.1, 0.1, 0.1, 1.0);
+			directionalLight->getColor() = glm::vec4(0.4f, 0.4f, 0.6f, 1.0f);
+			directionalLight->setDirection(glm::vec3(1.0f, -1.0f, 1.0f));
+			spotLight->getColor() = glm::vec4(1.0f, 0.9f, 0.7f, 1.0f);
+		}
+	}
+}
+
 GameWindow * Scene::getWindow()
 {
 	return m_window;
@@ -516,6 +529,10 @@ void Scene::onKey(Key key, Action action, Modifier modifier)
 		else if(key == Key::K0)
 		{
 			setViewMode(ViewMode::kShine);
+		}
+		else if(key == Key::T)
+		{
+			setDayMode(!dayMode);
 		}
 	}
 }
