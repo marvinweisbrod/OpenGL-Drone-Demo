@@ -378,34 +378,24 @@ void Scene::render(float dt)
 	// ---------------------------------------
 	// Forward pass
 
-	// Render text without depth test
-	glDisable(GL_DEPTH_TEST);
-	textRenderer->render();
-	glEnable(GL_DEPTH_TEST);
-	glDepthFunc(GL_LEQUAL);
+	// Render the skybox (if necessary)
+	if(viewMode == ViewMode::kDefault)
+	{
+		// Copy the depth buffer from the gbuffer to the default framebuffer
+		glBindFramebuffer(GL_READ_FRAMEBUFFER, gBuffer);
+		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+		glBlitFramebuffer(0, 0, width, height, 0, 0, width, height, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-	// Old code
-	/*
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	m_shaderMain->use();
-	m_shaderMain->bind(currentCameraFree ? *freeCamera : *followCamera);
-	m_shaderMain->bind(*pointLight);
-	m_shaderMain->bind(*spotLight);
-	m_shaderMain->bind(*directionalLight);
-	m_shaderMain->setUniform("ambient", ambientLight);
-
-	for(auto& renderable: renderables){
-		renderable->render(*m_shaderMain);
+		// render skybox after all other objects so we dont need to calculate hidden fragments
+		skyboxRenderer->render(currentCameraFree ? *freeCamera : *followCamera);
 	}
-	// render skybox after all other objects so we dont need to calculate hidden fragments
-	skyboxRenderer->render(currentCameraFree ? *freeCamera : *followCamera);
 
 	// Render text without depth test
 	glDisable(GL_DEPTH_TEST);
 	textRenderer->render();
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LEQUAL);
-	*/
 }
 
 void Scene::update(float dt)
