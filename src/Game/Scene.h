@@ -73,7 +73,7 @@ private:
 	// Scene Objects
 	std::shared_ptr<Renderable> r_ground;
 	std::shared_ptr<Renderable> r_drone;
-	std::shared_ptr<PointLight> pointLight;
+	std::vector<std::shared_ptr<PointLight>> pointLights;
 	std::shared_ptr<SpotLight> spotLight;
 	std::shared_ptr<DirectionalLight> directionalLight;
 	std::shared_ptr<Camera> followCamera;

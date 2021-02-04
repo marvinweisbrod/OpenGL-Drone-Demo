@@ -2,6 +2,13 @@
 
 out vec4 color;
 
+struct PointLight
+{
+	vec3 pos;
+	vec4 color;
+	vec3 attenuation;
+};
+
 //fragment shader output
 uniform sampler2D gPosition;
 uniform sampler2D gNormal;
@@ -10,8 +17,7 @@ uniform sampler2D gEmissive;
 uniform sampler2D gSpecShine;
 
 uniform vec4 ambient;
-uniform vec4 pointLightPos;
-uniform vec4 pointLightColor;
+uniform PointLight pointLights[7];
 uniform vec2 spotLightAngles;
 uniform vec4 spotLightPos;
 uniform vec4 spotLightDir;
@@ -23,8 +29,10 @@ uniform vec4 directionalLightColor;
 in vec3 vsViewPos;
 in vec2 vsUV;
 
-vec4 calculatePointLight(vec4 colorDiff, vec4 colorSpec, vec3 lightPos, vec4 lightColor, vec3 vsPos, vec3 vsNormalN, float shine){
-	vec3 lightDirN = normalize(lightPos-vsPos);
+vec4 calculatePointLight(vec4 colorDiff, vec4 colorSpec, vec3 lightPos, vec4 lightColor, vec3 attenuation, vec3 vsPos, vec3 vsNormalN, float shine){
+	vec3 lightToPixel = lightPos - vsPos;
+	float d = length(lightToPixel);
+	vec3 lightDirN = lightToPixel / d;
 	vec3 cameraDirN = normalize(vsViewPos-vsPos);
 	vec3 lightDirReflectN = normalize(reflect(-lightDirN, vsNormalN));
 	
@@ -34,7 +42,11 @@ vec4 calculatePointLight(vec4 colorDiff, vec4 colorSpec, vec3 lightPos, vec4 lig
 	
 	vec4 diffuseResult = colorDiff * max(cosa, 0.0);
 	vec4 specularResult = colorSpec * max(cosBetak, 0.0);
-	return (diffuseResult + specularResult) * lightColor;
+	vec4 result = diffuseResult + specularResult;
+
+	result *= 1.0f / (attenuation.x + attenuation.y * d + attenuation.z * d * d);
+
+	return result * lightColor;
 }
 
 vec4 calculateSpotLight(vec4 colorDiff, vec4 colorSpec, vec3 lightPos, vec4 lightColor, vec3 spotDir, vec2 lightAngles, vec3 vsPos, vec3 vsNormalN, float shine){
@@ -87,7 +99,10 @@ vec4 calculateDirectionalLight(vec4 colorDiff, vec4 colorSpec, vec4 lightColor, 
 vec4 calculateLit(vec4 colorDiff, vec4 colorSpec, vec3 vsPos, vec3 vsNormalN, float shine){
 	vec4 total;
 	
-	total += calculatePointLight(colorDiff, colorSpec, pointLightPos.xyz, pointLightColor, vsPos, vsNormalN, shine);
+	for(int i = 0; i < 7; ++i)
+	{
+		total += calculatePointLight(colorDiff, colorSpec, pointLights[i].pos, pointLights[i].color, pointLights[i].attenuation, vsPos, vsNormalN, shine);
+	}
 	
 	total += calculateSpotLight(colorDiff, colorSpec, spotLightPos.xyz, spotLightColor, spotLightDir.xyz, spotLightAngles, vsPos, vsNormalN, shine);
 

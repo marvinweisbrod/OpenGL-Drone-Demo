@@ -116,11 +116,18 @@ bool Scene::init()
 			const bool DAYMODE = true;
 			ambientLight = glm::vec4(0.5, 0.5, 0.5, 1.0);
 			directionalLight = std::make_shared<DirectionalLight>(glm::vec3(1.0f, 1.0f, 1.0f), glm::vec4(0.5f, 0.5f, 0.4f, 1.0f));
-			spotLight = std::make_shared<SpotLight>(glm::vec3(0.0f, 0.0f, 34.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::radians(20.0f), glm::radians(40.0f),
+			spotLight = std::make_shared<SpotLight>(glm::vec3(0.0f, 0.0f, 34.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::radians(10.0f), glm::radians(20.0f),
 				glm::vec4(0.0f, 0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 0.22f, 0.0019f));
 
 			spotLight->setParent(drone_body_transform.get());
-			pointLight = std::make_shared<PointLight>(glm::vec3(0.0f,2.0f,0.0f), glm::vec4(0.0f,0.0f,0.0f,0.0f));
+			glm::vec3 attenuation(1.0f, 0.3f, 0.1f);
+			pointLights.push_back(std::make_shared<PointLight>(glm::vec3(20.0f, 3.5f, 21.3f), glm::vec4(0.0f, 0.0f, 0.0f, 0.0f), attenuation));
+			pointLights.push_back(std::make_shared<PointLight>(glm::vec3(11.0f, 3.5f, 12.6f), glm::vec4(0.0f, 0.0f, 0.0f, 0.0f), attenuation));
+			pointLights.push_back(std::make_shared<PointLight>(glm::vec3(11.5f, 3.5f, -3.0f), glm::vec4(0.0f, 0.0f, 0.0f, 0.0f), attenuation));
+			pointLights.push_back(std::make_shared<PointLight>(glm::vec3(24.8f, 3.5f, 8.4f), glm::vec4(0.0f, 0.0f, 0.0f, 0.0f), attenuation));
+			pointLights.push_back(std::make_shared<PointLight>(glm::vec3(3.0f, 3.5f, 15.2f), glm::vec4(0.0f, 0.0f, 0.0f, 0.0f), attenuation));
+			pointLights.push_back(std::make_shared<PointLight>(glm::vec3(-1.3f, 3.5f, -10.7f), glm::vec4(0.0f, 0.0f, 0.0f, 0.0f), attenuation));
+			pointLights.push_back(std::make_shared<PointLight>(glm::vec3(-3.7f, 3.5f, -17.8f), glm::vec4(0.0f, 0.0f, 0.0f, 0.0f), attenuation));
 		}
 		{// Buildings
 			// good heights for our model are ß, -2.8, -5.8, -8.8, -11.8, -14.8
@@ -293,7 +300,20 @@ void Scene::render(float dt)
 		// Setup uniforms
 		glm::mat4 viewMatrix = currentCameraFree ? freeCamera->getViewMatrix() : followCamera->getViewMatrix();
 		m_shaderLightingPass->setUniform("viewMatInv", glm::inverse(viewMatrix), false);
-		m_shaderLightingPass->bind(*pointLight);
+		for(int i = 0; i < 7; ++i)
+		{
+			//glm::vec4 pos = pointLights[i]->getTransformMatrix() * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+			glm::vec3 pos = pointLights[i]->getPosition();
+			glm::vec4 color = pointLights[i]->getColor();
+			glm::vec3 attenuation = pointLights[i]->getAttenuation();
+			std::stringstream prefixss;
+			prefixss << "pointLights[" << i << "].";
+			std::string prefix = prefixss.str();
+			m_shaderLightingPass->setUniform(prefix + "pos", pos);
+			m_shaderLightingPass->setUniform(prefix + "color", color);
+			m_shaderLightingPass->setUniform(prefix + "attenuation", attenuation);
+
+		}
 		m_shaderLightingPass->bind(*spotLight);
 		m_shaderLightingPass->bind(*directionalLight);
 		m_shaderLightingPass->setUniform("ambient", ambientLight);
@@ -478,13 +498,34 @@ void Scene::setDayMode(bool day)
 			directionalLight->getColor() = glm::vec4(0.5f, 0.5f, 0.4f, 1.0f);
 			directionalLight->setDirection(glm::vec3(1.0f, 1.0f, 1.0f));
 			spotLight->getColor() = glm::vec4(0.0f, 0.0f, 0.0f, 0.0f);
+			pointLights[0]->getColor() = glm::vec4(0.0f, 0.0f, 0.0f, 0.0f);
+			pointLights[0]->getColor() = glm::vec4(0.0f, 0.0f, 0.0f, 0.0f);
+			pointLights[0]->getColor() = glm::vec4(0.0f, 0.0f, 0.0f, 0.0f);
+			pointLights[0]->getColor() = glm::vec4(0.0f, 0.0f, 0.0f, 0.0f);
+			pointLights[0]->getColor() = glm::vec4(0.0f, 0.0f, 0.0f, 0.0f);
+			pointLights[0]->getColor() = glm::vec4(0.0f, 0.0f, 0.0f, 0.0f);
+			pointLights[0]->getColor() = glm::vec4(0.0f, 0.0f, 0.0f, 0.0f);
 		}
 		else
 		{
-			ambientLight = glm::vec4(0.1, 0.1, 0.1, 1.0);
-			directionalLight->getColor() = glm::vec4(0.4f, 0.4f, 0.6f, 1.0f);
+			ambientLight = glm::vec4(0.05f, 0.05f, 0.05f, 1.0);
+			directionalLight->getColor() = glm::vec4(0.05f, 0.05f, 0.1f, 1.0f);
 			directionalLight->setDirection(glm::vec3(1.0f, -1.0f, 1.0f));
 			spotLight->getColor() = glm::vec4(1.0f, 0.9f, 0.7f, 1.0f);
+			pointLights[0]->getColor() = glm::vec4(0.8f, 0.2f, 0.0f, 1.0f);
+			pointLights[1]->getColor() = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+			pointLights[2]->getColor() = glm::vec4(0.2f, 0.2f, 0.9f, 1.0f);
+			pointLights[3]->getColor() = glm::vec4(0.8f, 0.8f, 0.0f, 1.0f);
+			pointLights[4]->getColor() = glm::vec4(0.1f, 0.6f, 0.8f, 1.0f);
+			pointLights[5]->getColor() = glm::vec4(0.1f, 0.6f, 0.1f, 1.0f);
+			pointLights[6]->getColor() = glm::vec4(0.0f, 0.2f, 1.0f, 1.0f);
+			//pointLights[0]->getColor() = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+			//pointLights[1]->getColor() = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+			//pointLights[2]->getColor() = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+			//pointLights[3]->getColor() = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+			//pointLights[4]->getColor() = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+			//pointLights[5]->getColor() = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+			//pointLights[6]->getColor() = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
 		}
 	}
 }
