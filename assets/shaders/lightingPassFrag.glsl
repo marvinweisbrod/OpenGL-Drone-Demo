@@ -5,8 +5,9 @@ out vec4 color;
 //fragment shader output
 uniform sampler2D gPosition;
 uniform sampler2D gNormal;
-uniform sampler2D gAlbedoSpec;
-uniform sampler2D gEmissiveShine;
+uniform sampler2D gAlbedo;
+uniform sampler2D gEmissive;
+uniform sampler2D gSpecShine;
 
 uniform vec4 ambient;
 uniform vec4 pointLightPos;
@@ -98,16 +99,15 @@ vec4 calculateLit(vec4 colorDiff, vec4 colorSpec, vec3 vsPos, vec3 vsNormalN, fl
 void main(){
 	vec3 pos = texture(gPosition, vsUV).xyz;
 	vec3 normal = texture(gNormal, vsUV).xyz;
-	vec4 albedoSpec = texture(gAlbedoSpec, vsUV);
-	vec4 emissiveShine = texture(gEmissiveShine, vsUV);
-	vec3 albedo = albedoSpec.xyz;
-	float spec = albedoSpec.a;
-	vec3 emissive = emissiveShine.xyz;
-	float shine = emissiveShine.a;
+	vec4 albedo = texture(gAlbedo, vsUV);
+	vec4 emissive = texture(gEmissive, vsUV);
+	vec4 specShine = texture(gSpecShine, vsUV);
+	float spec = specShine.x;
+	float shine = specShine.y * 100;
 
-	vec4 colorDiff = vec4(albedo, 1.0);
+	vec4 colorDiff = albedo;
 	vec4 colorSpec = vec4(spec, spec, spec, 1.0);
-	vec4 colorEmss = vec4(emissive, 1.0);
+	vec4 colorEmss = emissive;
 	
     vec4 sum = colorEmss + (colorDiff * ambient) + calculateLit(colorDiff, colorSpec, pos, normal, shine);
 	color = clamp(sum, vec4(0.0,0.0,0.0,0.0),vec4(1.0,1.0,1.0,1.0));

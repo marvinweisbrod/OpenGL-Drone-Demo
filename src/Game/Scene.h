@@ -91,8 +91,9 @@ private:
 	unsigned int gBuffer;
 	unsigned int gPosition;
 	unsigned int gNormal;
-	unsigned int gAlbedoSpec;
-	unsigned int gEmissiveShine;
+	unsigned int gAlbedo;
+	unsigned int gEmissive;
+	unsigned int gSpecShine;
 	unsigned int gDepth;
 	GLuint quadVao;
 	ViewMode viewMode = ViewMode::kDefault;

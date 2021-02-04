@@ -172,7 +172,6 @@ bool Scene::init()
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST); GLERR
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST); GLERR
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, gPosition, 0); GLERR
-		//glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, gPosition, 0); GLERR
 
 		// Normal color buffer
 		glGenTextures(1, &gNormal); GLERR
@@ -181,42 +180,45 @@ bool Scene::init()
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST); GLERR
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST); GLERR
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, gNormal, 0); GLERR
-		//glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, gNormal, 0); GLERR
 
-		// Color + spec color buffer
-		glGenTextures(1, &gAlbedoSpec); GLERR
-		glBindTexture(GL_TEXTURE_2D, gAlbedoSpec); GLERR
+		// Color color buffer
+		glGenTextures(1, &gAlbedo); GLERR
+		glBindTexture(GL_TEXTURE_2D, gAlbedo); GLERR
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, framebufferWidth, framebufferHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr); GLERR
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST); GLERR
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST); GLERR
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, gAlbedoSpec, 0); GLERR
-		//glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, gAlbedoSpec, 0); GLERR
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, gAlbedo, 0); GLERR
 
 		// Emissive color buffer
-		glGenTextures(1, &gEmissiveShine); GLERR
-		glBindTexture(GL_TEXTURE_2D, gEmissiveShine); GLERR
+		glGenTextures(1, &gEmissive); GLERR
+		glBindTexture(GL_TEXTURE_2D, gEmissive); GLERR
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, framebufferWidth, framebufferHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr); GLERR
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST); GLERR
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST); GLERR
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, GL_TEXTURE_2D, gEmissiveShine, 0); GLERR
-		//glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, gEmissiveShine, 0); GLERR
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, GL_TEXTURE_2D, gEmissive, 0); GLERR
 
-		// Depth buffer object
+		// Specular + shine color buffer
+		glGenTextures(1, &gSpecShine); GLERR
+		glBindTexture(GL_TEXTURE_2D, gSpecShine); GLERR
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, framebufferWidth, framebufferHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr); GLERR
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST); GLERR
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST); GLERR
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT4, GL_TEXTURE_2D, gSpecShine, 0); GLERR
+
+		// Depth buffer object, using render buffer
 		glGenRenderbuffers(1, &gDepth); GLERR
 		glBindRenderbuffer(GL_RENDERBUFFER, gDepth); GLERR
 		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, framebufferWidth, framebufferHeight); GLERR
 		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, gDepth); GLERR
+		// using color buffer
 		//glGenTextures(1, &gDepth);
 		//glBindTexture(GL_TEXTURE_2D, gDepth);
 		//glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32F, framebufferWidth, framebufferHeight, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr); GLERR
 		//glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, gDepth, 0); GLERR
 
 		// Set which color attachments we use
-		unsigned int attachments[4] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3 };
-		glDrawBuffers(4, attachments); GLERR
-
-		//unsigned int attachments[1] = { GL_COLOR_ATTACHMENT0 };
-		//glDrawBuffers(1, attachments); GLERR
+		unsigned int attachments[5] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3, GL_COLOR_ATTACHMENT4 };
+		glDrawBuffers(5, attachments); GLERR
 
 		GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER); GLERR
 		if(status != GL_FRAMEBUFFER_COMPLETE)
@@ -232,15 +234,6 @@ bool Scene::init()
 		glBindVertexArray(quadVao); GLERR
 
 		static const GLfloat quadVertexBufferData[] = {
-			/*
-			-1.0f, -1.0f, 0.0f, 0.0f,
-			1.0f, -1.0f, 1.0f, 0.0f,
-			-1.0f, 1.0f, 0.0f, 1.0f,
-			-1.0f, 1.0f, 0.0f, 1.0f,
-			1,.0f, -1.0f, 1.0f, 0.0f,
-			1.0f, 1.0f, 1.0f, 1.0f
-			*/
-
 			1, -1, 1.0f, 0.0f,
 			1, 1, 1.0f, 1.0f,
 			-1, -1, 0.0f, 0.0f,
@@ -320,11 +313,14 @@ void Scene::render(float dt)
 		glBindTexture(GL_TEXTURE_2D, gNormal); GLERR
 		m_shaderLightingPass->setUniform("gNormal", 1);
 		glActiveTexture(GL_TEXTURE2); GLERR
-		glBindTexture(GL_TEXTURE_2D, gAlbedoSpec); GLERR
-		m_shaderLightingPass->setUniform("gAlbedoSpec", 2);
+		glBindTexture(GL_TEXTURE_2D, gAlbedo); GLERR
+		m_shaderLightingPass->setUniform("gAlbedo", 2);
 		glActiveTexture(GL_TEXTURE3); GLERR
-		glBindTexture(GL_TEXTURE_2D, gEmissiveShine); GLERR
-		m_shaderLightingPass->setUniform("gEmissiveShine", 3);
+		glBindTexture(GL_TEXTURE_2D, gEmissive); GLERR
+		m_shaderLightingPass->setUniform("gEmissive", 3);
+		glActiveTexture(GL_TEXTURE4); GLERR
+		glBindTexture(GL_TEXTURE_2D, gSpecShine); GLERR
+		m_shaderLightingPass->setUniform("gSpecShine", 4);
 	}
 	else
 	{
@@ -346,31 +342,28 @@ void Scene::render(float dt)
 			break;
 
 		case ViewMode::kAlbedo:
-			glBindTexture(GL_TEXTURE_2D, gAlbedoSpec); GLERR
+			glBindTexture(GL_TEXTURE_2D, gAlbedo); GLERR
 			break;
 
 		case ViewMode::kSpec:
-			glBindTexture(GL_TEXTURE_2D, gAlbedoSpec); GLERR
-			channels[0][0] = 0.0f;
+			glBindTexture(GL_TEXTURE_2D, gSpecShine); GLERR
 			channels[1][1] = 0.0f;
 			channels[2][2] = 0.0f;
-			channels[3][0] = 1.0f;
-			channels[3][1] = 1.0f;
-			channels[3][2] = 1.0f;
+			channels[0][1] = 1.0f;
+			channels[0][2] = 1.0f;
 			break;
 
 		case ViewMode::kEmissive:
-			glBindTexture(GL_TEXTURE_2D, gEmissiveShine); GLERR
+			glBindTexture(GL_TEXTURE_2D, gEmissive); GLERR
 			break;
 
 		case ViewMode::kShine:
-			glBindTexture(GL_TEXTURE_2D, gEmissiveShine); GLERR
+			glBindTexture(GL_TEXTURE_2D, gSpecShine); GLERR
 			channels[0][0] = 0.0f;
-			channels[1][1] = 0.0f;
+			channels[1][1] = 1.0f;
 			channels[2][2] = 0.0f;
-			channels[3][0] = 0.01f;
-			channels[3][1] = 0.01f;
-			channels[3][2] = 0.01f;
+			channels[1][0] = 1.0f;
+			channels[1][2] = 1.0f;
 			break;
 		}
 		m_shaderVisualization->setUniform("gTexture", 0);
@@ -390,16 +383,6 @@ void Scene::render(float dt)
 	textRenderer->render();
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LEQUAL);
-
-	// For blitting
-	/*
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glBindFramebuffer(GL_READ_FRAMEBUFFER, gBuffer);
-	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-	glReadBuffer(GL_COLOR_ATTACHMENT1);
-	glBlitFramebuffer(0, 0, width, height, 0, 0, width, height, GL_COLOR_BUFFER_BIT, GL_LINEAR);
-	*/
 
 	// Old code
 	/*
